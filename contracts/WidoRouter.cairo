@@ -2,10 +2,11 @@
 
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_zero
+from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from openzeppelin.access.ownable.library import Ownable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
+from starkware.starknet.common.syscalls import get_contract_address
 
 struct OrderInput {
     token_address: felt,
@@ -84,17 +85,22 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
+@external
+func set_bank{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(bank: felt) {
+    with_attr error_message("Bank address cannot be zero address or Wido Router address") {
+        let (self_address) = get_contract_address();
+        assert_not_zero(bank);
+        assert_not_equal(bank, self_address);
+    }
+    Ownable.assert_only_owner();
+    Bank.write(bank);
+    SetBank.emit(bank);
+    return ();
+}
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-// /// @notice Sets the bank address
-//     /// @param _bank The address of the new bank
-//     function setBank(address _bank) external onlyOwner {
-//         require(_bank != address(0) && _bank != address(this), "Bank address cannot be zero address or Wido Router address");
-//         bank = _bank;
-//         emit SetBank(_bank);
-//     }
 
 // /// @notice Approve a token spending
 //     /// @param token The ERC20 token to approve
