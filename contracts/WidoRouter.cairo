@@ -2,6 +2,10 @@
 
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.math import assert_not_zero
+from openzeppelin.access.ownable.library import Ownable
+from starkware.starknet.common.syscalls import deploy
+from starkware.cairo.common.bool import FALSE
 
 struct OrderInput {
     token_address: felt,
@@ -45,34 +49,46 @@ func Bank() -> (bank: felt) {
 func Wido_Token_Manager() -> (wido_token_manager: felt) {
 }
 
-
 @view
 func bank{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (bank: felt) {
     return Bank.read();
 }
 
 @view
-func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (wido_token_manager: felt) {
+func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    wido_token_manager: felt
+) {
     return Wido_Token_Manager.read();
 }
 
+@constructor
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    owner: felt, _bank: felt, wido_token_manager_class_hash: felt
+) {
+    Ownable.initializer(owner);
+    Bank.write(_bank);
+
+    with_attr error_message("Bank address cannot be zero address") {
+        assert_not_zero(_bank);
+    }
+
+    let (_wido_token_manager: felt) = deploy(
+        class_hash=wido_token_manager_class_hash,
+        contract_address_salt=0,
+        constructor_calldata_size=0,
+        constructor_calldata=cast(new (0,), felt*),
+        deploy_from_zero=FALSE,
+    );
+    Wido_Token_Manager.write(_wido_token_manager);
+
+    return ();
+}
 
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
 
-//     constructor(
-//         address _wrappedNativeToken,
-//         address _bank // uint256 _feeBps
-//     ) {
-//         require(_wrappedNativeToken != address(0) && _bank != address(0), "Addresses cannot be zero address");
-
-//         wrappedNativeToken = _wrappedNativeToken;
-//         bank = _bank;
-//         widoTokenManager = new WidoTokenManager();
-//     }
-
-//     /// @notice Sets the bank address
+// /// @notice Sets the bank address
 //     /// @param _bank The address of the new bank
 //     function setBank(address _bank) external onlyOwner {
 //         require(_bank != address(0) && _bank != address(this), "Bank address cannot be zero address or Wido Router address");
@@ -80,7 +96,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         emit SetBank(_bank);
 //     }
 
-//     /// @notice Approve a token spending
+// /// @notice Approve a token spending
 //     /// @param token The ERC20 token to approve
 //     /// @param spender The address of the spender
 //     /// @param amount The minimum allowance to grant to the spender
@@ -91,7 +107,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         }
 //     }
 
-//     /// @notice Executes steps in the route to transfer to token
+// /// @notice Executes steps in the route to transfer to token
 //     /// @param route Step data for token transformation
 //     /// @dev Updates the amount in the byte data with the current balance as to not leave any dust
 //     /// @dev Expects step data to be properly chained for the token transformation tokenA -> tokenB -> tokenC
@@ -99,9 +115,9 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         for (uint256 i = 0; i < route.length; ) {
 //             Step calldata step = route[i];
 
-//             require(step.targetAddress != address(widoTokenManager), "Wido: forbidden call to WidoTokenManager");
+// require(step.targetAddress != address(widoTokenManager), "Wido: forbidden call to WidoTokenManager");
 
-//             uint256 balance;
+// uint256 balance;
 //             uint256 value;
 //             if (step.fromToken == address(0)) {
 //                 value = address(this).balance;
@@ -112,7 +128,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //                 _approveToken(step.fromToken, step.targetAddress, balance);
 //             }
 
-//             bytes memory editedSwapData;
+// bytes memory editedSwapData;
 //             if (step.amountIndex >= 0) {
 //                 uint256 idx = uint256(int256(step.amountIndex));
 //                 editedSwapData = bytes.concat(step.data[:idx], abi.encode(balance), step.data[idx + 32:]);
@@ -120,7 +136,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //                 editedSwapData = step.data;
 //             }
 
-//             (bool success, bytes memory result) = step.targetAddress.call{value: value}(editedSwapData);
+// (bool success, bytes memory result) = step.targetAddress.call{value: value}(editedSwapData);
 //             if (!success) {
 //                 // Next 5 lines from https://ethereum.stackexchange.com/a/83577
 //                 if (result.length < 68) revert();
@@ -130,13 +146,13 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //                 revert(abi.decode(result, (string)));
 //             }
 
-//             unchecked {
+// unchecked {
 //                 i++;
 //             }
 //         }
 //     }
 
-//     function hash(OrderInput[] memory orderInput) internal pure returns (bytes32) {
+// function hash(OrderInput[] memory orderInput) internal pure returns (bytes32) {
 //         bytes32[] memory result = new bytes32[](orderInput.length);
 //         for (uint256 i = 0; i < orderInput.length; ) {
 //             result[i] = keccak256(abi.encode(ORDER_INPUT_TYPEHASH, orderInput[i]));
@@ -147,7 +163,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         return keccak256(abi.encodePacked(result));
 //     }
 
-//     function hash(OrderOutput[] memory orderOutput) internal pure returns (bytes32) {
+// function hash(OrderOutput[] memory orderOutput) internal pure returns (bytes32) {
 //         bytes32[] memory result = new bytes32[](orderOutput.length);
 //         for (uint256 i = 0; i < orderOutput.length; ) {
 //             result[i] = keccak256(abi.encode(ORDER_OUTPUT_TYPEHASH, orderOutput[i]));
@@ -158,7 +174,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         return keccak256(abi.encodePacked(result));
 //     }
 
-//     function hash(Order memory order) internal pure returns (bytes32) {
+// function hash(Order memory order) internal pure returns (bytes32) {
 //         return
 //             keccak256(
 //                 abi.encode(
@@ -172,7 +188,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //             );
 //     }
 
-//     /// @notice Verifies if the order is valid
+// /// @notice Verifies if the order is valid
 //     /// @param order Order to be validated
 //     /// @param v v of the signature
 //     /// @param r r of the signature
@@ -201,7 +217,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         return true;
 //     }
 
-//     /// @notice Executes the validated order
+// /// @notice Executes the validated order
 //     /// @param order Order to be executed
 //     /// @param route Route to execute for the token swap
 //     /// @param recipient The address of the final token receiver
@@ -211,10 +227,10 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //     function _executeOrder(Order calldata order, Step[] calldata route, address recipient, uint256 feeBps) private {
 //         widoTokenManager.pullTokens(order.user, order.inputs);
 
-//         for (uint256 i = 0; i < order.inputs.length; ) {
+// for (uint256 i = 0; i < order.inputs.length; ) {
 //             IWidoRouter.OrderInput calldata input = order.inputs[i];
 
-//             uint256 balance;
+// uint256 balance;
 //             if (input.tokenAddress == address(0)) {
 //                 balance = address(this).balance;
 //             } else {
@@ -223,17 +239,17 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //             require(balance >= input.amount, "Balance lower than order amount");
 //             _collectFees(input.tokenAddress, balance, feeBps);
 
-//             unchecked {
+// unchecked {
 //                 i++;
 //             }
 //         }
 
-//         _executeSteps(route);
+// _executeSteps(route);
 
-//         for (uint256 i = 0; i < order.outputs.length; ) {
+// for (uint256 i = 0; i < order.outputs.length; ) {
 //             IWidoRouter.OrderOutput calldata output = order.outputs[i];
 
-//             if (output.tokenAddress == address(0)) {
+// if (output.tokenAddress == address(0)) {
 //                 uint256 balance = address(this).balance;
 //                 if (balance < output.minOutputAmount) {
 //                     revert SlippageTooHigh(output.minOutputAmount, balance);
@@ -247,13 +263,13 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //                 ERC20(output.tokenAddress).safeTransfer(recipient, balance);
 //             }
 
-//             unchecked {
+// unchecked {
 //                 i++;
 //             }
 //         }
 //     }
 
-//     /// @notice Returns the amount of tokens or native tokens after accounting for fee
+// /// @notice Returns the amount of tokens or native tokens after accounting for fee
 //     /// @param fromToken Address of the token for the fee
 //     /// @param amount Amount of tokens to subtract the fee
 //     /// @param feeBps Fee in basis points (bps)
@@ -270,7 +286,7 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         }
 //     }
 
-//     /// @notice Executes order to transform ERC20 token from order.fromToken to order.toToken
+// /// @notice Executes order to transform ERC20 token from order.fromToken to order.toToken
 //     /// @param order Order describing the expectation of the token transformation
 //     /// @param route Route describes the details of the token transformation
 //     /// @param recipient Destination address where the final tokens are sent
@@ -288,6 +304,6 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 //         emit FulfilledOrder(order, msg.sender, recipient, feeBps, partner);
 //     }
 
-//     /// @notice Allow receiving of native tokens
+// /// @notice Allow receiving of native tokens
 //     receive() external payable {}
 // }
