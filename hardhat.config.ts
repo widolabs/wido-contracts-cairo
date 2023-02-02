@@ -58,6 +58,9 @@ const config: HardhatUserConfig = {
             ]
         },
         hardhat: {}
+    },
+    paths: {
+        cairoPaths: ["~/cairo_venv/lib/python3.9/site-packages/openzeppelin"]
     }
 };
 
