@@ -7,6 +7,8 @@ from openzeppelin.access.ownable.library import Ownable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
 from starkware.starknet.common.syscalls import get_contract_address
+from openzeppelin.token.erc20.IERC20 import IERC20
+from starkware.cairo.common.uint256 import uint256_lt
 
 struct OrderInput {
     token_address: felt,
@@ -98,20 +100,29 @@ func set_bank{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(b
     return ();
 }
 
+func approve_token{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token: felt, spender: felt, amount: Uint256
+) {
+    let (self_address) = get_contract_address();
+    let (allowance) = IERC20.allowance(contract_address=token, owner=self_address, spender=spender);
+
+    let (is_allowance_less_than_amount) = uint256_lt(allowance, amount);
+    if (is_allowance_less_than_amount == 1) {
+        IERC20.approve(contract_address=token, spender=spender, amount=amount);
+        tempvar syscall_ptr = syscall_ptr;
+        tempvar pedersen_ptr = pedersen_ptr;
+        tempvar range_check_ptr = range_check_ptr;
+    } else {
+        tempvar syscall_ptr = syscall_ptr;
+        tempvar pedersen_ptr = pedersen_ptr;
+        tempvar range_check_ptr = range_check_ptr;
+    }
+    return ();
+}
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-// /// @notice Approve a token spending
-//     /// @param token The ERC20 token to approve
-//     /// @param spender The address of the spender
-//     /// @param amount The minimum allowance to grant to the spender
-//     function _approveToken(address token, address spender, uint256 amount) internal {
-//         ERC20 _token = ERC20(token);
-//         if (_token.allowance(address(this), spender) < amount) {
-//             _token.safeApprove(spender, type(uint256).max);
-//         }
-//     }
 
 // /// @notice Executes steps in the route to transfer to token
 //     /// @param route Step data for token transformation
