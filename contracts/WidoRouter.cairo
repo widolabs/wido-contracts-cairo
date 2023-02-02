@@ -28,6 +28,15 @@ struct Step {
     amount_index: felt,
 }
 
+// TODO: This is missing input and output tokens because event only support felts.
+@event
+func FulfilledOrder(user: felt, sender: felt, recipient: felt, fee_bps: felt, partner: felt) {
+}
+
+@event
+func SetBank(bank: felt) {
+}
+
 @storage_var
 func Bank() -> (bank: felt) {
 }
@@ -51,26 +60,6 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-//     /// @notice Event emitted when the order is fulfilled
-//     /// @param order The order that was fulfilled
-//     /// @param sender The msg.sender
-//     /// @param recipient Recipient of the final tokens of the order
-//     /// @param feeBps Fee in basis points (bps)
-//     /// @param partner Partner address
-//     event FulfilledOrder(
-//         Order order,
-//         address indexed sender,
-//         address recipient,
-//         uint256 feeBps,
-//         address indexed partner
-//     );
-
-//     /// @notice Event emitted when the bank address is updated
-//     /// @param bank The updated address of the bank
-//     event SetBank(
-//         address bank
-//     );
 
 //     constructor(
 //         address _wrappedNativeToken,
