@@ -1,6 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 struct OrderInput {
     token_address: felt,
@@ -27,38 +28,29 @@ struct Step {
     amount_index: felt,
 }
 
+@storage_var
+func Bank() -> (bank: felt) {
+}
+
+@storage_var
+func Wido_Token_Manager() -> (wido_token_manager: felt) {
+}
+
+
+@view
+func bank{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (bank: felt) {
+    return Bank.read();
+}
+
+@view
+func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (wido_token_manager: felt) {
+    return Wido_Token_Manager.read();
+}
+
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
-//     using SafeTransferLib for address;
-//     using SafeTransferLib for ERC20;
-
-//     bytes32 private constant EIP712_DOMAIN_TYPEHASH =
-//         keccak256(
-//             abi.encodePacked("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
-//         );
-
-//     bytes32 private constant ORDER_TYPEHASH =
-//         keccak256(
-//             abi.encodePacked(
-//                 "Order(OrderInput[] inputs,OrderOutput[] outputs,address user,uint32 nonce,uint32 expiration)OrderInput(address tokenAddress,uint256 amount)OrderOutput(address tokenAddress,uint256 minOutputAmount)"
-//             )
-//         );
-
-//     bytes32 private constant ORDER_INPUT_TYPEHASH =
-//         keccak256(abi.encodePacked("OrderInput(address tokenAddress,uint256 amount)"));
-
-//     bytes32 private constant ORDER_OUTPUT_TYPEHASH =
-//         keccak256(abi.encodePacked("OrderOutput(address tokenAddress,uint256 minOutputAmount)"));
-
-//     // Nonce for executing order with EIP-712 signatures.
-//     mapping(address => uint256) public nonces;
-
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-//     // Address of fee bank
-//     address public bank;
-
-//     WidoTokenManager public immutable widoTokenManager;
 
 //     /// @notice Event emitted when the order is fulfilled
 //     /// @param order The order that was fulfilled
