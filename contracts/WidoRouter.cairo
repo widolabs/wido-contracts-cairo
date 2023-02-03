@@ -171,8 +171,31 @@ func collect_fees{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 }
 
 func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    outputs_len: felt, outputs: OrderOutput*
+    outputs_len: felt, outputs: OrderOutput*, recipient: felt
 ) {
+    if (outputs_len == 0) {
+        return ();
+    }
+
+    let this_output: OrderOutput = [outputs];
+
+    let (self_address) = get_contract_address();
+
+    let (balance: Uint256) = IERC20.balanceOf(
+        contract_address=this_output.token_address, account=self_address
+    );
+
+    // TODO: Add which output failed slippage check
+    with_attr error_message("Wido: Slippage Too High") {
+        assert_uint256_lt(balance, this_output.min_output_amount);
+    }
+
+    IERC20.transfer(
+        contract_address=this_output.token_address, recipient=recipient, amount=balance
+    );
+
+    check_and_return_tokens(outputs_len - 1, outputs + OrderOutput.SIZE, recipient);
+
     return ();
 }
 
@@ -202,38 +225,13 @@ func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 
     execute_steps(steps_len, steps);
 
-    check_and_return_tokens(order.outputs_len, order.outputs);
+    check_and_return_tokens(order.outputs_len, order.outputs, recipient);
     return ();
 }
 
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-// function _executeOrder(Order calldata order, Step[] calldata route, address recipient, uint256 feeBps) private {
-
-// for (uint256 i = 0; i < order.outputs.length; ) {
-//             IWidoRouter.OrderOutput calldata output = order.outputs[i];
-
-// if (output.tokenAddress == address(0)) {
-//                 uint256 balance = address(this).balance;
-//                 if (balance < output.minOutputAmount) {
-//                     revert SlippageTooHigh(output.minOutputAmount, balance);
-//                 }
-//                 recipient.safeTransferETH(balance);
-//             } else {
-//                 uint256 balance = ERC20(output.tokenAddress).balanceOf(address(this));
-//                 if (balance < output.minOutputAmount) {
-//                     revert SlippageTooHigh(output.minOutputAmount, balance);
-//                 }
-//                 ERC20(output.tokenAddress).safeTransfer(recipient, balance);
-//             }
-
-// unchecked {
-//                 i++;
-//             }
-//         }
-//     }
 
 // /// @notice Executes order to transform ERC20 token from order.fromToken to order.toToken
 //     /// @param order Order describing the expectation of the token transformation
