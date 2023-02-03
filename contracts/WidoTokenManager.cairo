@@ -61,6 +61,6 @@ func pull_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
         recipient=local_owner,
         amount=inputs[0].amount,
     );
-    pull_tokens(user, inputs_len - 1, inputs + 1);
+    pull_tokens(user, inputs_len - 1, inputs + OrderInput.SIZE);
     return ();
 }
