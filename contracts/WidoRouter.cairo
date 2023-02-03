@@ -2,17 +2,22 @@
 
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.math import assert_not_zero, assert_not_equal, assert_le
 from starkware.cairo.common.math_cmp import is_not_zero
 from openzeppelin.access.ownable.library import Ownable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
-from starkware.starknet.common.syscalls import get_contract_address, call_contract
+from starkware.starknet.common.syscalls import (
+    get_contract_address,
+    call_contract,
+    get_caller_address,
+)
+from starkware.cairo.common.alloc import alloc
 from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.security.safemath.library import SafeUint256
 from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt, assert_uint256_le
 from IWidoTokenManager import IWidoTokenManager
-from IWidoRouter import OrderInput, OrderOutput, Order, Step
+from IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray
 
 // TODO: This is missing input and output tokens because event only support felts.
 @event
@@ -199,7 +204,7 @@ func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     return ();
 }
 
-func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func execute_order_internal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     order: Order, steps_len: felt, steps: Step*, recipient: felt, fee_bps: felt
 ) {
     alloc_locals;
@@ -229,29 +234,72 @@ func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     return ();
 }
 
+func _from_steps_call_array_to_steps{syscall_ptr: felt*}(
+    call_array_len: felt, call_array: StepCallArray*, calldata: felt*, steps: Step*
+) {
+    if (call_array_len == 0) {
+        return ();
+    }
+
+    assert [steps] = Step(
+        input_token=[call_array].input_token,
+        to=[call_array].to,
+        selector=[call_array].selector,
+        calldata_len=[call_array].calldata_len,
+        calldata=calldata,
+        amount_index=[call_array].amount_index,
+    );
+
+    _from_steps_call_array_to_steps(
+        call_array_len - 1,
+        call_array + StepCallArray.SIZE,
+        calldata + [call_array].calldata_len,
+        steps + Step.SIZE,
+    );
+
+    return ();
+}
+
+@external
+func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    inputs_len: felt,
+    inputs: OrderInput*,
+    outputs_len: felt,
+    outputs: OrderOutput*,
+    user: felt,
+    steps_call_array_len: felt,
+    steps_call_array: StepCallArray*,
+    calldata_len: felt,
+    calldata: felt*,
+    recipient: felt,
+    fee_bps: felt,
+    partner: felt,
+) {
+    alloc_locals;
+
+    let (sender_address) = get_caller_address();
+
+    with_attr error_message("Wido: Fee out of range") {
+        assert_le(fee_bps, 100);
+    }
+    with_attr error_message("Wido: Invalid order user") {
+        assert_not_equal(sender_address, user);
+    }
+
+    let order = Order(
+        inputs_len=inputs_len, inputs=inputs, outputs_len=outputs_len, outputs=outputs, user=user
+    );
+
+    // TMP: Convert `StepCallArray` and calldata to `Step`.
+    let (steps: Step*) = alloc();
+    _from_steps_call_array_to_steps(steps_call_array_len, steps_call_array, calldata, steps);
+    let steps_len = steps_call_array_len;
+
+    execute_order_internal(order, steps_len, steps, recipient, fee_bps);
+
+    FulfilledOrder.emit(user, sender_address, recipient, fee_bps, partner);
+
+    return ();
+}
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
-//     // Address of the wrapped native token
-//     address public immutable wrappedNativeToken;
-
-// /// @notice Executes order to transform ERC20 token from order.fromToken to order.toToken
-//     /// @param order Order describing the expectation of the token transformation
-//     /// @param route Route describes the details of the token transformation
-//     /// @param recipient Destination address where the final tokens are sent
-//     /// @param feeBps Fee in basis points (bps)
-//     /// @param partner Partner address
-//     function executeOrder(
-//         Order calldata order,
-//         Step[] calldata route,
-//         address recipient,
-//         uint256 feeBps,
-//         address partner
-//     ) external payable override nonReentrant {
-// require(feeBps <= 100, "Fee out of range");
-//         require(msg.sender == order.user, "Invalid order user");
-//         _executeOrder(order, route, recipient, feeBps);
-//         emit FulfilledOrder(order, msg.sender, recipient, feeBps, partner);
-//     }
-
-// /// @notice Allow receiving of native tokens
-//     receive() external payable {}
-// }

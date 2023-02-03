@@ -28,3 +28,11 @@ struct Step {
     calldata: felt*,
     amount_index: felt,
 }
+
+struct StepCallArray {
+    input_token: felt,
+    to: felt,
+    selector: felt,
+    calldata_len: felt,
+    amount_index: felt,
+}
