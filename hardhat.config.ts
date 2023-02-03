@@ -39,10 +39,10 @@ const config: HardhatUserConfig = {
                 // Read about Devnet options here: https://shard-labs.github.io/starknet-devnet/docs/guide/run
                 //
                 // *Account predeployment*
-                // "--seed",
-                // "42",
-                // "--accounts",
-                // "1",
+                "--seed",
+                "2745237918",
+                "--accounts",
+                "1",
                 // "--initial-balance", <VALUE>
                 //
                 // *Forking*
