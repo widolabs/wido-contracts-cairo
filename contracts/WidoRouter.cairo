@@ -6,9 +6,9 @@ from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from openzeppelin.access.ownable.library import Ownable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
-from starkware.starknet.common.syscalls import get_contract_address
+from starkware.starknet.common.syscalls import get_contract_address, call_contract
 from openzeppelin.token.erc20.IERC20 import IERC20
-from starkware.cairo.common.uint256 import uint256_lt
+from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt
 
 struct OrderInput {
     token_address: felt,
@@ -30,8 +30,10 @@ struct Order {
 
 struct Step {
     input_token: felt,
-    target_address: felt,
-    data: felt,  // TODO: Check what datatype is needed.
+    to: felt,
+    selector: felt,
+    calldata_len: felt,
+    calldata: felt*,
     amount_index: felt,
 }
 
@@ -120,54 +122,48 @@ func approve_token{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     return ();
 }
 
+func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    steps_len: felt, steps: Step*
+) {
+    if (steps_len == 0) {
+        return ();
+    }
+
+    let this_step: Step = [steps];
+
+    let (_wido_token_manager) = wido_token_manager();
+
+    with_attr error_message("Wido: forbidden call to WidoTokenManager") {
+        assert_not_equal(this_step.to, _wido_token_manager);
+    }
+
+    let (self_address) = get_contract_address();
+    let (balance: Uint256) = IERC20.balanceOf(
+        contract_address=this_step.input_token, account=self_address
+    );
+    with_attr error_message("Wido: Not enough balance for the step") {
+        // TODO: Find a way to check balance > 0
+    }
+    approve_token(this_step.input_token, this_step.to, balance);
+
+    // TODO: See if editing the calldata is possible with the new balance.
+
+    // TODO: Check if response needs to be rolled up like in
+    // https://github.com/OpenZeppelin/cairo-contracts/blob/331844dcf278ccdf96ce3b63fb3e5f2c78970561/src/openzeppelin/account/library.cairo#L224
+    call_contract(
+        contract_address=this_step.to,
+        function_selector=this_step.selector,
+        calldata_size=this_step.calldata_len,
+        calldata=this_step.calldata,
+    );
+
+    execute_steps(steps_len - 1, steps + Step.SIZE);
+    return ();
+}
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
-
-// /// @notice Executes steps in the route to transfer to token
-//     /// @param route Step data for token transformation
-//     /// @dev Updates the amount in the byte data with the current balance as to not leave any dust
-//     /// @dev Expects step data to be properly chained for the token transformation tokenA -> tokenB -> tokenC
-//     function _executeSteps(Step[] calldata route) private {
-//         for (uint256 i = 0; i < route.length; ) {
-//             Step calldata step = route[i];
-
-// require(step.targetAddress != address(widoTokenManager), "Wido: forbidden call to WidoTokenManager");
-
-// uint256 balance;
-//             uint256 value;
-//             if (step.fromToken == address(0)) {
-//                 value = address(this).balance;
-//             } else {
-//                 value = 0;
-//                 balance = ERC20(step.fromToken).balanceOf(address(this));
-//                 require(balance > 0, "Not enough balance for the step");
-//                 _approveToken(step.fromToken, step.targetAddress, balance);
-//             }
-
-// bytes memory editedSwapData;
-//             if (step.amountIndex >= 0) {
-//                 uint256 idx = uint256(int256(step.amountIndex));
-//                 editedSwapData = bytes.concat(step.data[:idx], abi.encode(balance), step.data[idx + 32:]);
-//             } else {
-//                 editedSwapData = step.data;
-//             }
-
-// (bool success, bytes memory result) = step.targetAddress.call{value: value}(editedSwapData);
-//             if (!success) {
-//                 // Next 5 lines from https://ethereum.stackexchange.com/a/83577
-//                 if (result.length < 68) revert();
-//                 assembly {
-//                     result := add(result, 0x04)
-//                 }
-//                 revert(abi.decode(result, (string)));
-//             }
-
-// unchecked {
-//                 i++;
-//             }
-//         }
-//     }
 
 // /// @notice Executes the validated order
 //     /// @param order Order to be executed
