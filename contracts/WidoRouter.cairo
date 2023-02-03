@@ -15,6 +15,7 @@ from starkware.starknet.common.syscalls import (
 from starkware.cairo.common.alloc import alloc
 from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.security.safemath.library import SafeUint256
+from openzeppelin.security.reentrancyguard.library import ReentrancyGuard
 from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt, assert_uint256_le
 from IWidoTokenManager import IWidoTokenManager
 from IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray
@@ -276,6 +277,7 @@ func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     partner: felt,
 ) {
     alloc_locals;
+    ReentrancyGuard.start();
 
     let (sender_address) = get_caller_address();
 
@@ -299,7 +301,6 @@ func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 
     FulfilledOrder.emit(user, sender_address, recipient, fee_bps, partner);
 
+    ReentrancyGuard.end();
     return ();
 }
-
-// contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
