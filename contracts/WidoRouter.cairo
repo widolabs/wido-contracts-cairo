@@ -9,33 +9,8 @@ from starkware.cairo.common.bool import FALSE
 from starkware.starknet.common.syscalls import get_contract_address, call_contract
 from openzeppelin.token.erc20.IERC20 import IERC20
 from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt
-
-struct OrderInput {
-    token_address: felt,
-    amount: Uint256,
-}
-
-struct OrderOutput {
-    token_address: felt,
-    min_output_amount: Uint256,
-}
-
-struct Order {
-    inputs_len: felt,
-    inputs: OrderInput*,
-    outputs_len: felt,
-    outputs: OrderOutput*,
-    user: felt,
-}
-
-struct Step {
-    input_token: felt,
-    to: felt,
-    selector: felt,
-    calldata_len: felt,
-    calldata: felt*,
-    amount_index: felt,
-}
+from IWidoTokenManager import IWidoTokenManager
+from IWidoRouter import OrderInput, OrderOutput, Order, Step
 
 // TODO: This is missing input and output tokens because event only support felts.
 @event
