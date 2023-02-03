@@ -3,12 +3,14 @@
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.math_cmp import is_not_zero
 from openzeppelin.access.ownable.library import Ownable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
 from starkware.starknet.common.syscalls import get_contract_address, call_contract
 from openzeppelin.token.erc20.IERC20 import IERC20
-from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt
+from openzeppelin.security.safemath.library import SafeUint256
+from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt, assert_uint256_le
 from IWidoTokenManager import IWidoTokenManager
 from IWidoRouter import OrderInput, OrderOutput, Order, Step
 
@@ -136,38 +138,79 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     return ();
 }
 
+func collect_fees{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    inputs_len: felt, inputs: OrderInput*, fee_bps: felt
+) {
+    alloc_locals;
+    if (inputs_len == 0) {
+        return ();
+    }
+
+    let this_input: OrderInput = [inputs];
+
+    let (self_address) = get_contract_address();
+
+    let (balance: Uint256) = IERC20.balanceOf(
+        contract_address=this_input.token_address, account=self_address
+    );
+
+    with_attr error_message("Wido: Balance lower than order amount") {
+        assert_uint256_le(this_input.amount, balance);
+    }
+
+    // TODO: Verify if fee calculation is correct.
+    let (numerator: Uint256) = SafeUint256.mul(this_input.amount, Uint256(fee_bps, 0));
+    let (fee: Uint256, _) = SafeUint256.div_rem(numerator, Uint256(10000, 0));
+
+    let (_bank: felt) = bank();
+
+    IERC20.transfer(contract_address=this_input.token_address, recipient=_bank, amount=fee);
+
+    collect_fees(inputs_len - 1, inputs + OrderInput.SIZE, fee_bps);
+    return ();
+}
+
+func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    outputs_len: felt, outputs: OrderOutput*
+) {
+    return ();
+}
+
+func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    order: Order, steps_len: felt, steps: Step*, recipient: felt, fee_bps: felt
+) {
+    alloc_locals;
+    let (_wido_token_manager) = wido_token_manager();
+    IWidoTokenManager.pull_tokens(
+        contract_address=_wido_token_manager,
+        user=order.user,
+        inputs_len=order.inputs_len,
+        inputs=order.inputs,
+    );
+
+    let is_fee_not_zero = is_not_zero(fee_bps);
+    if (is_fee_not_zero == 1) {
+        collect_fees(order.inputs_len, order.inputs, fee_bps);
+        tempvar syscall_ptr = syscall_ptr;
+        tempvar pedersen_ptr = pedersen_ptr;
+        tempvar range_check_ptr = range_check_ptr;
+    } else {
+        tempvar syscall_ptr = syscall_ptr;
+        tempvar pedersen_ptr = pedersen_ptr;
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    execute_steps(steps_len, steps);
+
+    check_and_return_tokens(order.outputs_len, order.outputs);
+    return ();
+}
+
 // contract WidoRouter is IWidoRouter, Ownable, ReentrancyGuard {
 //     // Address of the wrapped native token
 //     address public immutable wrappedNativeToken;
 
-// /// @notice Executes the validated order
-//     /// @param order Order to be executed
-//     /// @param route Route to execute for the token swap
-//     /// @param recipient The address of the final token receiver
-//     /// @param feeBps Fee in basis points (bps)
-//     /// @dev Expects the steps in the route to transform order.fromToken to order.toToken
-//     /// @dev Expects at least order.minToTokenAmount to be transferred to the recipient
-//     function _executeOrder(Order calldata order, Step[] calldata route, address recipient, uint256 feeBps) private {
-//         widoTokenManager.pullTokens(order.user, order.inputs);
-
-// for (uint256 i = 0; i < order.inputs.length; ) {
-//             IWidoRouter.OrderInput calldata input = order.inputs[i];
-
-// uint256 balance;
-//             if (input.tokenAddress == address(0)) {
-//                 balance = address(this).balance;
-//             } else {
-//                 balance = ERC20(input.tokenAddress).balanceOf(address(this));
-//             }
-//             require(balance >= input.amount, "Balance lower than order amount");
-//             _collectFees(input.tokenAddress, balance, feeBps);
-
-// unchecked {
-//                 i++;
-//             }
-//         }
-
-// _executeSteps(route);
+// function _executeOrder(Order calldata order, Step[] calldata route, address recipient, uint256 feeBps) private {
 
 // for (uint256 i = 0; i < order.outputs.length; ) {
 //             IWidoRouter.OrderOutput calldata output = order.outputs[i];
@@ -192,23 +235,6 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 //         }
 //     }
 
-// /// @notice Returns the amount of tokens or native tokens after accounting for fee
-//     /// @param fromToken Address of the token for the fee
-//     /// @param amount Amount of tokens to subtract the fee
-//     /// @param feeBps Fee in basis points (bps)
-//     /// @dev Sends the fee to the bank to not maintain any balance in the contract
-//     function _collectFees(address fromToken, uint256 amount, uint256 feeBps) private {
-//         require(feeBps <= 100, "Fee out of range");
-//         uint256 fee = (amount * feeBps) / 10000;
-//         if (fee > 0) {
-//             if (fromToken == address(0)) {
-//                 bank.safeTransferETH(fee);
-//             } else {
-//                 ERC20(fromToken).safeTransfer(bank, fee);
-//             }
-//         }
-//     }
-
 // /// @notice Executes order to transform ERC20 token from order.fromToken to order.toToken
 //     /// @param order Order describing the expectation of the token transformation
 //     /// @param route Route describes the details of the token transformation
@@ -222,6 +248,7 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 //         uint256 feeBps,
 //         address partner
 //     ) external payable override nonReentrant {
+// require(feeBps <= 100, "Fee out of range");
 //         require(msg.sender == order.user, "Invalid order user");
 //         _executeOrder(order, route, recipient, feeBps);
 //         emit FulfilledOrder(order, msg.sender, recipient, feeBps, partner);
