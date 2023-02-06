@@ -5,6 +5,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal, assert_le
 from starkware.cairo.common.math_cmp import is_not_zero
 from openzeppelin.access.ownable.library import Ownable
+from openzeppelin.security.initializable.library import Initializable
 from starkware.starknet.common.syscalls import deploy
 from starkware.cairo.common.bool import FALSE
 from starkware.starknet.common.syscalls import (
@@ -49,27 +50,9 @@ func wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
     return Wido_Token_Manager.read();
 }
 
-@constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, _bank: felt, wido_token_manager_class_hash: felt
-) {
-    Ownable.initializer(owner);
-    Bank.write(_bank);
-
-    with_attr error_message("Bank address cannot be zero address") {
-        assert_not_zero(_bank);
-    }
-
-    let (_wido_token_manager: felt) = deploy(
-        class_hash=wido_token_manager_class_hash,
-        contract_address_salt=0,
-        constructor_calldata_size=0,
-        constructor_calldata=cast(new (0,), felt*),
-        deploy_from_zero=FALSE,
-    );
-    Wido_Token_Manager.write(_wido_token_manager);
-
-    return ();
+@view
+func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
+    return Ownable.owner();
 }
 
 @external
@@ -259,6 +242,33 @@ func _from_steps_call_array_to_steps{syscall_ptr: felt*}(
     );
 
     return ();
+}
+
+@external
+func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    owner: felt, _bank: felt, wido_token_manager_class_hash: felt
+) -> (wido_token_manager: felt) {
+    Initializable.initialize();
+    Ownable.initializer(owner);
+
+    let (self_address) = get_contract_address();
+
+    with_attr error_message("Bank address cannot be zero address") {
+        assert_not_zero(_bank);
+    }
+
+    let (_wido_token_manager: felt) = deploy(
+        class_hash=wido_token_manager_class_hash,
+        contract_address_salt=0,
+        constructor_calldata_size=1,
+        constructor_calldata=cast(new (self_address,), felt*),
+        deploy_from_zero=FALSE,
+    );
+
+    Wido_Token_Manager.write(_wido_token_manager);
+    Bank.write(_bank);
+
+    return (wido_token_manager=_wido_token_manager);
 }
 
 @external
