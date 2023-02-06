@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
                 "--seed",
                 "2745237918",
                 "--accounts",
-                "1",
+                "1"
                 // "--initial-balance", <VALUE>
                 //
                 // *Forking*
