@@ -8,7 +8,7 @@ describe("Deployments", function () {
     this.timeout(TIMEOUT);
 
     it("should deploy WidoTokenManager", async function () {
-        const account = await getOZAccount();
+        const account = await getOZAccount("deployer");
 
         const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
             "WidoTokenManager"
@@ -26,7 +26,8 @@ describe("Deployments", function () {
     });
 
     it("should deploy WidoRouter", async function () {
-        const account = await getOZAccount();
+        const account = await getOZAccount("deployer");
+        const bank = await getOZAccount("bank");
 
         const tokenManagerContractFactory: StarknetContractFactory =
             await starknet.getContractFactory("WidoTokenManager");
@@ -43,7 +44,7 @@ describe("Deployments", function () {
 
         await account.invoke(contract, "initialize", {
             owner: account.address,
-            _bank: account.address,
+            _bank: bank.address,
             wido_token_manager_class_hash: tokenManagerClassHash
         });
 

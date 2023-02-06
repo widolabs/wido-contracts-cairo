@@ -1,9 +1,6 @@
 import { expect } from "chai";
 import { starknet } from "hardhat";
 
-export const OZ_ACCOUNT_ADDRESS = ensureEnvVar("OZ_ACCOUNT_ADDRESS");
-export const OZ_ACCOUNT_PRIVATE_KEY = ensureEnvVar("OZ_ACCOUNT_PRIVATE_KEY");
-
 export function ensureEnvVar(varName: string): string {
     if (!process.env[varName]) {
         throw new Error(`Env var ${varName} not set or empty`);
@@ -17,7 +14,7 @@ export function ensureEnvVar(varName: string): string {
  * @param address a hex string representation of an address
  * @returns an adapted hex string representation of the address
  */
-function adaptAddress(address: string) {
+export function adaptAddress(address: string) {
     return "0x" + BigInt(address).toString(16);
 }
 
@@ -33,9 +30,19 @@ export function expectAddressEquality(actual: string, expected: string) {
 /**
  * Returns an instance of OZAccount. Expected to be deployed)
  */
-export async function getOZAccount() {
-    return await starknet.OpenZeppelinAccount.getAccountFromAddress(
-        OZ_ACCOUNT_ADDRESS,
-        OZ_ACCOUNT_PRIVATE_KEY
-    );
+export async function getOZAccount(type: string) {
+    let address, privateKey;
+    if (type == "deployer") {
+        address = ensureEnvVar("DEPLOYER_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("DEPLOYER_ACCOUNT_PRIVATE_KEY");
+    } else if (type == "bank") {
+        address = ensureEnvVar("BANK_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("BANK_ACCOUNT_PRIVATE_KEY");
+    } else if (type == "user") {
+        address = ensureEnvVar("USER_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("USER_ACCOUNT_PRIVATE_KEY");
+    } else {
+        throw Error("Account not found");
+    }
+    return await starknet.OpenZeppelinAccount.getAccountFromAddress(address, privateKey);
 }

@@ -176,7 +176,7 @@ func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 
     // TODO: Add which output failed slippage check
     with_attr error_message("Wido: Slippage Too High") {
-        assert_uint256_lt(balance, this_output.min_output_amount);
+        assert_uint256_lt(this_output.min_output_amount, balance);
     }
 
     IERC20.transfer(
@@ -295,7 +295,7 @@ func execute_order{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         assert_le(fee_bps, 100);
     }
     with_attr error_message("Wido: Invalid order user") {
-        assert_not_equal(sender_address, user);
+        assert sender_address = user;
     }
 
     let order = Order(
