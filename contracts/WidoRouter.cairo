@@ -1,13 +1,12 @@
 %lang starknet
 
-from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal, assert_le
 from starkware.cairo.common.math_cmp import is_not_zero
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.security.initializable.library import Initializable
 from starkware.starknet.common.syscalls import deploy
-from starkware.cairo.common.bool import FALSE
+from starkware.cairo.common.bool import FALSE, TRUE
 from starkware.starknet.common.syscalls import (
     get_contract_address,
     call_contract,
@@ -17,7 +16,7 @@ from starkware.cairo.common.alloc import alloc
 from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.security.safemath.library import SafeUint256
 from openzeppelin.security.reentrancyguard.library import ReentrancyGuard
-from starkware.cairo.common.uint256 import uint256_lt, assert_uint256_lt, assert_uint256_le
+from starkware.cairo.common.uint256 import Uint256, uint256_lt, assert_uint256_lt, assert_uint256_le
 from IWidoTokenManager import IWidoTokenManager
 from IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray
 
@@ -108,7 +107,7 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         contract_address=this_step.input_token, account=self_address
     );
     with_attr error_message("Wido: Not enough balance for the step") {
-        // TODO: Find a way to check balance > 0
+        assert_uint256_lt(Uint256(0, 0), balance);
     }
     approve_token(this_step.input_token, this_step.to, balance);
 

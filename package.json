@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "dev-compile": "npx hardhat starknet-compile --disable-hint-validation contracts/*",
         "compile": "npx hardhat starknet-compile contracts/*",
+        "clean": "rm -rf starknet-artifacts",
         "test": "npx hardhat --network localhost test",
         "lint": "eslint $(git ls-files '*.ts')",
         "format": "prettier-eslint --list-different --write $(git ls-files '*.ts')"
@@ -31,6 +33,7 @@
     "dependencies": {
         "@toruslabs/starkware-crypto": "^1.1.0",
         "axios": "^0.24.0",
-        "hardhat": "2.9.9"
+        "hardhat": "2.9.9",
+        "starknet": "^4.17.1"
     }
 }
