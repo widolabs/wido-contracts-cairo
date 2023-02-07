@@ -36,3 +36,22 @@ struct StepCallArray {
     calldata_len: felt,
     amount_index: felt,
 }
+
+@contract_interface
+namespace IWidoRouter {
+    func execute_order(
+        inputs_len: felt,
+        inputs: OrderInput*,
+        outputs_len: felt,
+        outputs: OrderOutput*,
+        user: felt,
+        steps_call_array_len: felt,
+        steps_call_array: StepCallArray*,
+        calldata_len: felt,
+        calldata: felt*,
+        recipient: felt,
+        fee_bps: felt,
+        partner: felt,
+    ) {
+    }
+}

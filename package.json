@@ -4,8 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev-compile": "npx hardhat starknet-compile --disable-hint-validation contracts/*",
-        "compile": "npx hardhat starknet-compile contracts/*",
+        "dev-compile": "npx hardhat starknet-compile --disable-hint-validation contracts/*.cairo",
+        "compile": "npx hardhat starknet-compile contracts/*.cairo",
         "clean": "rm -rf starknet-artifacts",
         "test": "npx hardhat --network localhost test",
         "lint": "eslint $(git ls-files '*.ts')",
