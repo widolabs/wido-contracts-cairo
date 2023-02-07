@@ -17,8 +17,8 @@ from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.security.safemath.library import SafeUint256
 from openzeppelin.security.reentrancyguard.library import ReentrancyGuard
 from starkware.cairo.common.uint256 import Uint256, uint256_lt, assert_uint256_lt, assert_uint256_le
-from IWidoTokenManager import IWidoTokenManager
-from IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray
+from interfaces.IWidoTokenManager import IWidoTokenManager
+from interfaces.IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray
 
 // TODO: This is missing input and output tokens because event only support felts.
 @event

@@ -1,7 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.uint256 import Uint256
-from IWidoRouter import OrderInput
+from interfaces.IWidoRouter import OrderInput
 
 @contract_interface
 namespace IWidoTokenManager {

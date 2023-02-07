@@ -3,7 +3,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from openzeppelin.security.initializable.library import Initializable
 from starkware.starknet.common.syscalls import get_contract_address, get_caller_address
-from IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray, IWidoRouter
+from interfaces.IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray, IWidoRouter
 
 @storage_var
 func Wido_Router() -> (wido_router: felt) {
