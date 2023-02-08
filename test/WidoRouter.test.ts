@@ -14,7 +14,7 @@ import { hash, uint256 } from "starknet";
 
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 
-describe.only("WidoRouter", function () {
+describe("WidoRouter", function () {
     this.timeout(TIMEOUT);
 
     let widoRouter: StarknetContract;

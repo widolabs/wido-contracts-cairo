@@ -17,25 +17,28 @@ contract WidoStarknetRouter {
     IWidoRouter public widoRouter;
     uint256 public l2WidoRecipient;
 
-    constructor(IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, uint256 _l2WidoRecipient) {
+    mapping(address => IStarknetEthBridge) public tokenBridgeMapping;
+
+    constructor(IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, IStarknetEthBridge _starknetEthBridge, uint256 _l2WidoRecipient) {
         starknetCore = _starknetCore;
         widoRouter = _widoRouter;
         l2WidoRecipient = _l2WidoRecipient;
+
+        tokenBridgeMapping[address(0)] = _starknetEthBridge;
     }
 
-    function getBridgeAddress(address tokenAddress) internal pure returns (address bridgeAddress) {
+    function getBridgeAddress(address tokenAddress) internal view returns (IStarknetEthBridge bridgeAddress) {
         // Depending on the bridge token address, this should return the bridge address.
         // Hopefully this lives outside of this contract so we can always upgrade
         // to get the new addresses.
 
-        // TODO: Put address
-        bridgeAddress = address(0);
+        bridgeAddress = tokenBridgeMapping[tokenAddress];
     }
 
     function _bridgeTokens(address tokenAddress, uint256 amount) internal {
-        address bridgeAddress = getBridgeAddress(tokenAddress);
+        IStarknetEthBridge bridge = getBridgeAddress(tokenAddress);
         // TODO: Check if starkgate bridge address is approved.
-        IStarknetEthBridge(bridgeAddress).deposit{value: amount}(l2WidoRecipient);
+        bridge.deposit{value: amount}(l2WidoRecipient);
     }
 
     function _sendMessage(uint256[] calldata payload) internal {
@@ -50,15 +53,14 @@ contract WidoStarknetRouter {
         for (uint256 i = 0; i < inputs.length;) {
             IWidoRouter.OrderInput calldata input = inputs[i];
 
+            unchecked {
+                i++;
+            }
             if (input.tokenAddress == address(0)) {
                 continue;
             }
 
             ERC20(input.tokenAddress).safeTransferFrom(msg.sender, address(this), input.amount);
-
-            unchecked {
-                i++;
-            }
         }
     }
 
@@ -72,7 +74,7 @@ contract WidoStarknetRouter {
         uint256[] calldata destinationPayload
     ) external payable {
         // Do validations
-        require(order.user == address(this));
+        require(order.user == address(this), "Order user should equal WidoStarknetRouer");
 
         // Fetch tokens from msg.sender.
         _pullTokens(order.inputs);
