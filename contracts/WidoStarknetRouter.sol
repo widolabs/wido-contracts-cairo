@@ -42,6 +42,7 @@ contract WidoStarknetRouter {
     }
 
     function _sendMessage(uint256[] calldata payload) internal {
+        // TODO: Only send message when there is payload
         starknetCore.sendMessageToL2(
             l2WidoRecipient,
             EXECUTE_SELECTOR,
@@ -75,6 +76,7 @@ contract WidoStarknetRouter {
     ) external payable {
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
+        // TODO: Validate if destination payload is correct.
 
         // Fetch tokens from msg.sender.
         _pullTokens(order.inputs);
