@@ -12,14 +12,14 @@ import { getArgentXAccount } from "../test/util";
 async function main() {
     const WidoStarknetRouterFactory = await ethers.getContractFactory("WidoStarknetRouter");
     const WidoStarknetRouter = WidoStarknetRouterFactory.attach(
-        "0x2bA2793f10c7eb3F8132187675098d0b525EdbA8"
+        "0x74C168289AdA049eAF71c9331849Ae5532606cBC"
     );
 
     const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
-        "WidoRouter"
+        "WidoL1Router"
     );
-    const widoRouter = contractFactory.getContractAt(
-        "0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad"
+    const widoL1Router = contractFactory.getContractAt(
+        "0x06e150359ff1ef65eed29b4863441ea288877e59bd80e48bf134e4a21df87a33"
     );
 
     const amount = ethers.utils.parseEther("0.00001");
@@ -27,6 +27,7 @@ async function main() {
     // const starknetUser = await getArgentXAccount();
 
     const destinationArgs = {
+        from_address: "123",
         inputs: [
             {
                 token_address: STARKNET_TESTNET_ETH,
@@ -36,10 +37,9 @@ async function main() {
         outputs: [
             {
                 token_address: STARKNET_TESTNET_USDC,
-                min_output_amount: { high: 0, low: "100000000" }
+                min_output_amount: { high: 0, low: "10000" }
             }
         ],
-        user: "0x06e150359ff1ef65eed29b4863441ea288877e59bd80e48bf134e4a21df87a33", // WidoL1Router.cairo address
         steps_call_array: [
             {
                 input_token: STARKNET_TESTNET_ETH,
@@ -52,7 +52,7 @@ async function main() {
         calldata: [
             "9970000000000", // amount in
             "0",
-            "100000000", // min amount out
+            "10000", // min amount out
             "0",
             "2", // path len
             STARKNET_TESTNET_ETH,
@@ -60,11 +60,9 @@ async function main() {
             "0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad", // recipient
             "2675683658" // deadline
         ],
-        recipient: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
-        fee_bps: "0",
-        partner: "0"
+        recipient: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36"
     };
-    const destinationPayload = widoRouter.adaptInput("execute_order", destinationArgs);
+    const destinationPayload = widoL1Router.adaptInput("execute", destinationArgs);
 
     // const feeEstimate = await starknetUser.estimateInvokeFee([
     //     {
@@ -73,7 +71,8 @@ async function main() {
     //         calldata: destinationPayload
     //     }
     // ]);
-    const feeEstimate = ethers.BigNumber.from("16739952544");
+    // const feeEstimate = ethers.BigNumber.from("16739952544");
+    const feeEstimate = ethers.BigNumber.from("0");
 
     const tx = await WidoStarknetRouter.executeOrder(
         {
@@ -104,7 +103,7 @@ async function main() {
         30, // feeBps
         ethers.constants.AddressZero, // partner
         ethers.constants.AddressZero, // bridgeTokenAddress
-        destinationPayload,
+        destinationPayload.slice(1), // remove from_address
         { value: amount.add(feeEstimate) }
     );
 
