@@ -38,6 +38,7 @@ describe("WidoRouter", function () {
         const classHash = await deployer.declare(contractFactory);
         widoRouter = await deployer.deploy(contractFactory);
 
+        console.log(tokenManagerClassHash);
         await deployer.invoke(widoRouter, "initialize", {
             owner: deployer.address,
             _bank: bank.address,

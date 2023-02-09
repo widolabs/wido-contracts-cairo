@@ -4,6 +4,8 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from openzeppelin.security.initializable.library import Initializable
 from starkware.starknet.common.syscalls import get_contract_address, get_caller_address
 from interfaces.IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray, IWidoRouter
+from starkware.cairo.common.uint256 import Uint256, uint256_not
+from openzeppelin.token.erc20.IERC20 import IERC20
 
 @storage_var
 func Wido_Router() -> (wido_router: felt) {
@@ -11,11 +13,14 @@ func Wido_Router() -> (wido_router: felt) {
 
 @external
 func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    wido_router: felt
+    wido_router: felt, token_address: felt
 ) {
     Initializable.initialize();
 
-    // TODO: Approve Wido Token Manager
+    // TODO: Support Multiple Tokens.
+    let (infinite: Uint256) = uint256_not(Uint256(0, 0));
+    let (wido_token_manager) = IWidoRouter.wido_token_manager(contract_address=wido_router);
+    IERC20.approve(contract_address=token_address, spender=wido_token_manager, amount=infinite);
 
     Wido_Router.write(wido_router);
 

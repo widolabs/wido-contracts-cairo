@@ -39,6 +39,9 @@ struct StepCallArray {
 
 @contract_interface
 namespace IWidoRouter {
+    func wido_token_manager() -> (wido_token_manager: felt) {
+    }
+
     func execute_order(
         inputs_len: felt,
         inputs: OrderInput*,

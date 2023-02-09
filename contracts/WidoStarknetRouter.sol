@@ -12,7 +12,7 @@ contract WidoStarknetRouter {
     IStarknetMessaging public starknetCore;
 
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
-    uint256 constant EXECUTE_SELECTOR = 0;
+    uint256 constant EXECUTE_SELECTOR = 1017745666394979726211766185068760164586829337678283062942418931026954492996;
 
     IWidoRouter public widoRouter;
     uint256 public l2WidoRecipient;
@@ -89,6 +89,9 @@ contract WidoStarknetRouter {
 
         // TODO: Add some expectation around the minimum value for
         // to-be-bridged tokens.
+        // TODO: Check if destination payload amount is equal to the
+        // `amount` above. Hacker should not be able to withdraw all
+        // funds from the destination account.
 
         _bridgeTokens(bridgeTokenAddress, amount);
 

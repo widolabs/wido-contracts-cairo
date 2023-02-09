@@ -35,12 +35,24 @@ describe.only("WidoStarknetRouter", async function () {
                         amount
                     }
                 ],
-                outputs: [],
+                outputs: [
+                    {
+                        tokenAddress: ethers.constants.AddressZero,
+                        minOutputAmount: amount.mul(997).div(1000)
+                    }
+                ],
                 user: WidoStarknetRouter.address,
                 nonce: 0,
                 expiration: 0
             }, // order
-            [], // steps
+            [
+                // {
+                //     fromToken: ethers.constants.AddressZero,
+                //     targetAddress: WidoStarknetRouter.address,
+                //     data: WidoStarknetRouter.interface.encodeFunctionData("widoRouter"),
+                //     amountIndex: -1
+                // }
+            ], // steps
             30, // feeBps
             ethers.constants.AddressZero, // partner
             ethers.constants.AddressZero, // bridgeTokenAddress

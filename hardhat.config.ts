@@ -2,6 +2,8 @@ import { HardhatUserConfig } from "hardhat/types";
 import "@shardlabs/starknet-hardhat-plugin";
 import "@nomiclabs/hardhat-ethers";
 import * as dotenv from "dotenv";
+import { accounts } from "./utils/network";
+
 dotenv.config();
 
 /**
@@ -17,7 +19,8 @@ const config: HardhatUserConfig = {
         // uses the currently active Python environment (hopefully with available Starknet commands!)
         // venv: "active",
         recompile: false,
-        network: "integrated-devnet",
+        // network: "integrated-devnet",
+        network: "alphaGoerli",
         wallets: {
             OpenZeppelin: {
                 accountName: "OpenZeppelin",
@@ -58,6 +61,7 @@ const config: HardhatUserConfig = {
                 // "--gas-price", <VALUE>
             ]
         },
+        goerli: { url: "https://rpc.ankr.com/eth_goerli", accounts: accounts("goerli") },
         hardhat: {}
     },
     paths: {
