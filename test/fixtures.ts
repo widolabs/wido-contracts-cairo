@@ -1,6 +1,7 @@
 import { StarknetContractFactory } from "hardhat/types";
 import { getOZAccount } from "./util";
 import { starknet } from "hardhat";
+import { shortString } from "starknet";
 
 export async function deployWidoRouter() {
     const deployer = await getOZAccount("deployer");
@@ -26,7 +27,7 @@ export async function deployWidoRouter() {
     return widoRouter;
 }
 
-export async function deployWidoL1Router(widoRouterAddress: string, bridgeTokenAddress: string) {
+export async function deployWidoL1Router(widoRouterAddress: string, bridgeTokenAddress: string[]) {
     const deployer = await getOZAccount("deployer");
 
     const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
@@ -42,4 +43,16 @@ export async function deployWidoL1Router(widoRouterAddress: string, bridgeTokenA
     });
 
     return widoL1Router;
+}
+
+export async function deployMockERC20(name: string, symbol: string) {
+    const deployer = await getOZAccount("deployer");
+
+    const contractFactory: StarknetContractFactory = await starknet.getContractFactory("MockERC20");
+    await deployer.declare(contractFactory);
+
+    return await deployer.deploy(contractFactory, {
+        name: shortString.encodeShortString(name),
+        symbol: shortString.encodeShortString(symbol)
+    });
 }

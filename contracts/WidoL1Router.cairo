@@ -9,7 +9,6 @@ from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.access.ownable.library import Ownable
 from starkware.cairo.common.math import assert_not_zero
 
-
 @event
 func SetL1ContractAddress(l1_contract_address: felt) {
 }
@@ -22,17 +21,30 @@ func Wido_Router() -> (wido_router: felt) {
 func L1_Contract_Address() -> (l1_contract_address: felt) {
 }
 
+func approve_wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    wido_token_manager: felt, token_address_len: felt, token_address: felt*
+) {
+    if (token_address_len == 0) {
+        return ();
+    }
+
+    let (infinite: Uint256) = uint256_not(Uint256(0, 0));
+    IERC20.approve(contract_address=[token_address], spender=wido_token_manager, amount=infinite);
+
+    approve_wido_token_manager(wido_token_manager, token_address_len - 1, token_address + 1);
+
+    return ();
+}
+
 @external
 func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, wido_router: felt, token_address: felt
+    owner: felt, wido_router: felt, token_address_len: felt, token_address: felt*
 ) {
     Initializable.initialize();
     Ownable.initializer(owner);
 
-    // TODO: Support Multiple Tokens.
-    let (infinite: Uint256) = uint256_not(Uint256(0, 0));
     let (wido_token_manager) = IWidoRouter.wido_token_manager(contract_address=wido_router);
-    IERC20.approve(contract_address=token_address, spender=wido_token_manager, amount=infinite);
+    approve_wido_token_manager(wido_token_manager, token_address_len, token_address);
 
     Wido_Router.write(wido_router);
 
