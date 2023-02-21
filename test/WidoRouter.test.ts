@@ -14,7 +14,7 @@ import { hash, uint256 } from "starknet";
 
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 
-describe("WidoRouter", function () {
+describe.only("WidoRouter", function () {
     this.timeout(TIMEOUT);
 
     let widoRouter: StarknetContract;
@@ -60,49 +60,58 @@ describe("WidoRouter", function () {
         const ethToken = erc20Factory.getContractAt(STARKNET_TESTNET_ETH);
         const usdcToken = erc20Factory.getContractAt(STARKNET_TESTNET_USDC);
 
-        await user.invoke(ethToken, "approve", {
-            spender: widoTokenManager.address,
-            amount: { high: 0, low: "100000000000000000" }
-        });
-
-        const txHash = await user.invoke(widoRouter, "execute_order", {
-            inputs: [
-                {
-                    token_address: STARKNET_TESTNET_ETH,
+        await user.multiInvoke([
+            {
+                toContract: ethToken,
+                functionName: "approve",
+                calldata: {
+                    spender: widoTokenManager.address,
                     amount: { high: 0, low: "100000000000000000" }
                 }
-            ],
-            outputs: [
-                {
-                    token_address: STARKNET_TESTNET_USDC,
-                    min_output_amount: { high: 0, low: "1000000000" }
+            },
+            {
+                toContract: widoRouter,
+                functionName: "execute_order",
+                calldata: {
+                    inputs: [
+                        {
+                            token_address: STARKNET_TESTNET_ETH,
+                            amount: { high: 0, low: "100000000000000000" }
+                        }
+                    ],
+                    outputs: [
+                        {
+                            token_address: STARKNET_TESTNET_USDC,
+                            min_output_amount: { high: 0, low: "1000000000" }
+                        }
+                    ],
+                    user: user.address,
+                    steps_call_array: [
+                        {
+                            input_token: STARKNET_TESTNET_ETH,
+                            to: STARKNET_TESTNET_JEDISWAP_ROUTER,
+                            selector: hash.getSelectorFromName("swap_exact_tokens_for_tokens"),
+                            calldata_len: 9,
+                            amount_index: 0
+                        }
+                    ],
+                    calldata: [
+                        "100000000000000000", // amount in
+                        "0",
+                        "1000000000", // min amount out
+                        "0",
+                        "2", // path len
+                        STARKNET_TESTNET_ETH,
+                        STARKNET_TESTNET_USDC,
+                        widoRouter.address, // recipient
+                        "2675683658" // deadline
+                    ],
+                    recipient: user.address,
+                    fee_bps: 0,
+                    partner: 0
                 }
-            ],
-            user: user.address,
-            steps_call_array: [
-                {
-                    input_token: STARKNET_TESTNET_ETH,
-                    to: STARKNET_TESTNET_JEDISWAP_ROUTER,
-                    selector: hash.getSelectorFromName("swap_exact_tokens_for_tokens"),
-                    calldata_len: 9,
-                    amount_index: 0
-                }
-            ],
-            calldata: [
-                "100000000000000000", // amount in
-                "0",
-                "1000000000", // min amount out
-                "0",
-                "2", // path len
-                STARKNET_TESTNET_ETH,
-                STARKNET_TESTNET_USDC,
-                widoRouter.address, // recipient
-                "2675683658" // deadline
-            ],
-            recipient: user.address,
-            fee_bps: 0,
-            partner: 0
-        });
+            }
+        ]);
 
         const { balance: usdcBalance } = await usdcToken.call("balanceOf", {
             account: user.address
