@@ -2,11 +2,7 @@ import { expect } from "chai";
 import { starknet } from "hardhat";
 import hre from "hardhat";
 import { Account, StarknetContract, StarknetContractFactory as tt } from "hardhat/types";
-import {
-    STARKNET_TESTNET_ETH,
-    STARKNET_TESTNET_JEDISWAP_ROUTER,
-    STARKNET_TESTNET_USDC
-} from "./address";
+import { STARKGATE_ETH, STARKNET_TESTNET_JEDISWAP_ROUTER, STARKNET_TESTNET_USDC } from "./address";
 import { TIMEOUT } from "./constants";
 import { adaptAddress, getOZAccount } from "./util";
 
@@ -14,7 +10,7 @@ import { hash, uint256 } from "starknet";
 
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 
-describe.only("WidoRouter", function () {
+describe("WidoRouter", function () {
     this.timeout(TIMEOUT);
 
     let widoRouter: StarknetContract;
@@ -57,7 +53,7 @@ describe.only("WidoRouter", function () {
             hre,
             metadataPath: ""
         });
-        const ethToken = erc20Factory.getContractAt(STARKNET_TESTNET_ETH);
+        const ethToken = erc20Factory.getContractAt(STARKGATE_ETH);
         const usdcToken = erc20Factory.getContractAt(STARKNET_TESTNET_USDC);
 
         await user.multiInvoke([
@@ -75,7 +71,7 @@ describe.only("WidoRouter", function () {
                 calldata: {
                     inputs: [
                         {
-                            token_address: STARKNET_TESTNET_ETH,
+                            token_address: STARKGATE_ETH,
                             amount: { high: 0, low: "100000000000000000" }
                         }
                     ],
@@ -88,7 +84,7 @@ describe.only("WidoRouter", function () {
                     user: user.address,
                     steps_call_array: [
                         {
-                            input_token: STARKNET_TESTNET_ETH,
+                            input_token: STARKGATE_ETH,
                             to: STARKNET_TESTNET_JEDISWAP_ROUTER,
                             selector: hash.getSelectorFromName("swap_exact_tokens_for_tokens"),
                             calldata_len: 9,
@@ -101,7 +97,7 @@ describe.only("WidoRouter", function () {
                         "1000000000", // min amount out
                         "0",
                         "2", // path len
-                        STARKNET_TESTNET_ETH,
+                        STARKGATE_ETH,
                         STARKNET_TESTNET_USDC,
                         widoRouter.address, // recipient
                         "2675683658" // deadline

@@ -3,7 +3,7 @@ import { StarknetContractFactory } from "hardhat/types";
 
 import { hash } from "starknet";
 import {
-    STARKNET_TESTNET_ETH,
+    STARKGATE_ETH,
     STARKNET_TESTNET_JEDISWAP_ROUTER,
     STARKNET_TESTNET_USDC
 } from "../test/address";
@@ -30,7 +30,7 @@ async function main() {
         from_address: "123",
         inputs: [
             {
-                token_address: STARKNET_TESTNET_ETH,
+                token_address: STARKGATE_ETH,
                 amount: { high: 0, low: "9970000000000" }
             }
         ],
@@ -42,7 +42,7 @@ async function main() {
         ],
         steps_call_array: [
             {
-                input_token: STARKNET_TESTNET_ETH,
+                input_token: STARKGATE_ETH,
                 to: STARKNET_TESTNET_JEDISWAP_ROUTER,
                 selector: hash.getSelectorFromName("swap_exact_tokens_for_tokens"),
                 calldata_len: "9",
@@ -55,7 +55,7 @@ async function main() {
             "10000", // min amount out
             "0",
             "2", // path len
-            STARKNET_TESTNET_ETH,
+            STARKGATE_ETH,
             STARKNET_TESTNET_USDC,
             "0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad", // recipient
             "2675683658" // deadline

@@ -6,16 +6,28 @@ from starkware.starknet.common.syscalls import get_contract_address, get_caller_
 from interfaces.IWidoRouter import OrderInput, OrderOutput, Order, Step, StepCallArray, IWidoRouter
 from starkware.cairo.common.uint256 import Uint256, uint256_not
 from openzeppelin.token.erc20.IERC20 import IERC20
+from openzeppelin.access.ownable.library import Ownable
+from starkware.cairo.common.math import assert_not_zero
+
+
+@event
+func SetL1ContractAddress(l1_contract_address: felt) {
+}
 
 @storage_var
 func Wido_Router() -> (wido_router: felt) {
 }
 
+@storage_var
+func L1_Contract_Address() -> (l1_contract_address: felt) {
+}
+
 @external
 func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    wido_router: felt, token_address: felt
+    owner: felt, wido_router: felt, token_address: felt
 ) {
     Initializable.initialize();
+    Ownable.initializer(owner);
 
     // TODO: Support Multiple Tokens.
     let (infinite: Uint256) = uint256_not(Uint256(0, 0));
@@ -24,6 +36,19 @@ func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
     Wido_Router.write(wido_router);
 
+    return ();
+}
+
+@external
+func set_l1_contract_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    l1_contract_address: felt
+) {
+    with_attr error_message("L1 contract address cannot be zero address") {
+        assert_not_zero(l1_contract_address);
+    }
+    Ownable.assert_only_owner();
+    L1_Contract_Address.write(l1_contract_address);
+    SetL1ContractAddress.emit(l1_contract_address);
     return ();
 }
 
@@ -43,7 +68,9 @@ func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     recipient: felt,
 ) {
     alloc_locals;
-    // TODO: Check if the caller address is actually the core contract.
+
+    let (l1_contract_address) = L1_Contract_Address.read();
+    assert from_address = l1_contract_address;
 
     let (wido_router) = Wido_Router.read();
     let (self_address) = get_contract_address();
