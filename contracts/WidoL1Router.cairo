@@ -49,6 +49,8 @@ func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (self_address) = get_contract_address();
 
     // TODO: Add try catch, if fails send bridged token to the recipient.
+    // Try/Catch is not available in Cairo 0 but will be available in Cairo 1
+    // https://discord.com/channels/793094838509764618/793094838987128844/1073235205923549236
     IWidoRouter.execute_order(
         contract_address=wido_router,
         inputs_len=inputs_len,
