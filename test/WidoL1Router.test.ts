@@ -9,7 +9,7 @@ import { STARKGATE_ETH } from "./address";
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { number, uint256 } from "starknet";
 
-describe.only("WidoL1Router", function () {
+describe("WidoL1Router", function () {
     this.timeout(TIMEOUT);
 
     let widoRouter: StarknetContract;

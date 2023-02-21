@@ -10,7 +10,7 @@ import { hash, uint256 } from "starknet";
 
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 
-describe("WidoRouter", function () {
+describe.only("WidoRouter", function () {
     this.timeout(TIMEOUT);
 
     let widoRouter: StarknetContract;
@@ -34,7 +34,6 @@ describe("WidoRouter", function () {
         const classHash = await deployer.declare(contractFactory);
         widoRouter = await deployer.deploy(contractFactory);
 
-        console.log(tokenManagerClassHash);
         await deployer.invoke(widoRouter, "initialize", {
             owner: deployer.address,
             _bank: bank.address,
@@ -56,6 +55,98 @@ describe("WidoRouter", function () {
         const ethToken = erc20Factory.getContractAt(STARKGATE_ETH);
         const usdcToken = erc20Factory.getContractAt(STARKNET_TESTNET_USDC);
 
+        await deployer.invoke(ethToken, "transfer", {
+            recipient: widoRouter.address,
+            amount: { high: 0, low: "1000000000000" }
+        });
+
+        const { balance: initialContractBalance } = await ethToken.call("balanceOf", {
+            account: widoRouter.address
+        });
+        await user.multiInvoke([
+            {
+                toContract: ethToken,
+                functionName: "approve",
+                calldata: {
+                    spender: widoTokenManager.address,
+                    amount: { high: 0, low: "100000000000000000" }
+                }
+            },
+            {
+                toContract: widoRouter,
+                functionName: "execute_order",
+                calldata: {
+                    inputs: [
+                        {
+                            token_address: STARKGATE_ETH,
+                            amount: { high: 0, low: "100000000000000000" }
+                        }
+                    ],
+                    outputs: [
+                        {
+                            token_address: STARKNET_TESTNET_USDC,
+                            min_output_amount: { high: 0, low: "1000000000" }
+                        }
+                    ],
+                    user: user.address,
+                    steps_call_array: [
+                        {
+                            input_token: STARKGATE_ETH,
+                            to: STARKNET_TESTNET_JEDISWAP_ROUTER,
+                            selector: hash.getSelectorFromName("swap_exact_tokens_for_tokens"),
+                            calldata_len: 9,
+                            amount_index: -1
+                        }
+                    ],
+                    calldata: [
+                        "100000000000000000", // amount in
+                        "0",
+                        "1000000000", // min amount out
+                        "0",
+                        "2", // path len
+                        STARKGATE_ETH,
+                        STARKNET_TESTNET_USDC,
+                        widoRouter.address, // recipient
+                        "2675683658" // deadline
+                    ],
+                    recipient: user.address,
+                    fee_bps: 0,
+                    partner: 0
+                }
+            }
+        ]);
+
+        const { balance: finalContractBalance } = await ethToken.call("balanceOf", {
+            account: widoRouter.address
+        });
+
+        expect(uint256.uint256ToBN(initialContractBalance).toString()).to.eq(
+            uint256.uint256ToBN(finalContractBalance).toString()
+        );
+
+        const { balance: usdcBalance } = await usdcToken.call("balanceOf", {
+            account: user.address
+        });
+        expect(uint256.uint256ToBN(usdcBalance).gtn(0)).to.be.true;
+    });
+
+    it("should swap ETH to USDC on Jediswap - all balance", async function () {
+        const erc20Factory = new StarknetContractFactory({
+            abiPath: "./starknet-artifacts/contracts/test/MockERC20.cairo/MockERC20_abi.json",
+            hre,
+            metadataPath: ""
+        });
+        const ethToken = erc20Factory.getContractAt(STARKGATE_ETH);
+        const usdcToken = erc20Factory.getContractAt(STARKNET_TESTNET_USDC);
+
+        await deployer.invoke(ethToken, "transfer", {
+            recipient: widoRouter.address,
+            amount: { high: 0, low: "1000000000000" }
+        });
+
+        const { balance: initialContractBalance } = await ethToken.call("balanceOf", {
+            account: widoRouter.address
+        });
         await user.multiInvoke([
             {
                 toContract: ethToken,
@@ -108,6 +199,18 @@ describe("WidoRouter", function () {
                 }
             }
         ]);
+
+        const { balance: finalContractBalance } = await ethToken.call("balanceOf", {
+            account: widoRouter.address
+        });
+
+        expect(uint256.uint256ToBN(finalContractBalance).toString()).to.eq("0");
+
+        expect(
+            uint256
+                .uint256ToBN(initialContractBalance)
+                .gt(uint256.uint256ToBN(finalContractBalance))
+        ).to.be.true;
 
         const { balance: usdcBalance } = await usdcToken.call("balanceOf", {
             account: user.address

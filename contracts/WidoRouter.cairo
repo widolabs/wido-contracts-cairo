@@ -12,6 +12,7 @@ from starkware.starknet.common.syscalls import (
     call_contract,
     get_caller_address,
 )
+from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.alloc import alloc
 from openzeppelin.token.erc20.IERC20 import IERC20
 from openzeppelin.security.safemath.library import SafeUint256
@@ -90,6 +91,8 @@ func approve_token{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     steps_len: felt, steps: Step*
 ) {
+    alloc_locals;
+
     if (steps_len == 0) {
         return ();
     }
@@ -111,7 +114,20 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     }
     approve_token(this_step.input_token, this_step.to, balance);
 
-    // TODO: See if editing the calldata is possible with the new balance.
+    let (local edited_calldata: felt*) = alloc();
+    if (this_step.amount_index == -1) {
+        memcpy(edited_calldata, this_step.calldata, this_step.calldata_len);
+    } else {
+        memcpy(edited_calldata, this_step.calldata, this_step.amount_index);
+        // Use actual contract balance
+        assert [edited_calldata + this_step.amount_index] = balance.low;
+        assert [edited_calldata + this_step.amount_index + 1] = balance.high;
+        memcpy(
+            edited_calldata + this_step.amount_index + 2,
+            this_step.calldata + this_step.amount_index + 2,
+            this_step.calldata_len - this_step.amount_index - 2,
+        );
+    }
 
     // TODO: Check if response needs to be rolled up like in
     // https://github.com/OpenZeppelin/cairo-contracts/blob/331844dcf278ccdf96ce3b63fb3e5f2c78970561/src/openzeppelin/account/library.cairo#L224
@@ -119,7 +135,7 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         contract_address=this_step.to,
         function_selector=this_step.selector,
         calldata_size=this_step.calldata_len,
-        calldata=this_step.calldata,
+        calldata=edited_calldata,
     );
 
     execute_steps(steps_len - 1, steps + Step.SIZE);

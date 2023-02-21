@@ -4,10 +4,11 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev-compile:cairo": "npx hardhat starknet-compile --disable-hint-validation contracts/*.cairo",
+        "dev-compile:cairo": "npx hardhat starknet-compile --disable-hint-validation contracts/*.cairo && npx hardhat starknet-compile --disable-hint-validation contracts/**/*.cairo",
         "compile:cairo": "npx hardhat starknet-compile contracts/*.cairo && npx hardhat starknet-compile contracts/**/*.cairo",
         "compile:solidity": "npx hardhat compile",
         "clean": "rm -rf starknet-artifacts && npx hardhat clean",
+        "dev-test": "yarn run dev-compile:cairo && yarn run compile:solidity && npx hardhat test",
         "test": "yarn run compile:cairo && yarn run compile:solidity && npx hardhat test",
         "lint": "eslint $(git ls-files '*.ts')",
         "format": "prettier-eslint --list-different --write $(git ls-files '*.ts')"
