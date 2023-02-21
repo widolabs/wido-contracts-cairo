@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "dev-compile:cairo": "npx hardhat starknet-compile --disable-hint-validation contracts/*.cairo",
-        "compile:cairo": "npx hardhat starknet-compile contracts/**/*.cairo",
+        "compile:cairo": "npx hardhat starknet-compile contracts/*.cairo && npx hardhat starknet-compile contracts/**/*.cairo",
         "compile:solidity": "npx hardhat compile",
         "clean": "rm -rf starknet-artifacts && npx hardhat clean",
         "test": "yarn run compile:cairo && yarn run compile:solidity && npx hardhat test",
