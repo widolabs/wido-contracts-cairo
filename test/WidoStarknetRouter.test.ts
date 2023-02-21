@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { deployFixtures } from "./l1-utils";
 
-describe.only("WidoStarknetRouter", async function () {
+describe("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;
     let signer: SignerWithAddress;
