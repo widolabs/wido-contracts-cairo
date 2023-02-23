@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@shardlabs/starknet-hardhat-plugin";
 import "@nomiclabs/hardhat-ethers";
+import "@openzeppelin/hardhat-upgrades";
 import * as dotenv from "dotenv";
 import { accounts } from "./utils/network";
 

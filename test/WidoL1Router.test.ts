@@ -4,7 +4,7 @@ import { Account, StarknetContract } from "hardhat/types";
 import { TIMEOUT } from "./constants";
 import { getOZAccount } from "./util";
 import hre from "hardhat";
-import { deployMockERC20, deployWidoL1Router, deployWidoRouter } from "./fixtures";
+import { deployMockERC20, deployWidoL1Router, deployWidoRouter } from "./starknet-fixtures";
 import { STARKGATE_ETH } from "./address";
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { number, uint256 } from "starknet";

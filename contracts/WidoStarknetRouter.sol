@@ -3,12 +3,15 @@ pragma solidity 0.8.7;
 
 import "./interfaces/IStarknetMessaging.sol";
 import "./interfaces/IStarknetEthBridge.sol";
+import "./interfaces/IStarknetERC20Bridge.sol";
 import "./interfaces/IWidoRouter.sol";
+import "./interfaces/IWidoConfig.sol";
 import "solmate/src/utils/SafeTransferLib.sol";
 
 contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
     
+    IWidoConfig public widoConfig;
     IStarknetMessaging public starknetCore;
 
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
@@ -17,28 +20,26 @@ contract WidoStarknetRouter {
     IWidoRouter public widoRouter;
     uint256 public l2WidoRecipient;
 
-    mapping(address => IStarknetEthBridge) public tokenBridgeMapping;
-
-    constructor(IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, IStarknetEthBridge _starknetEthBridge, uint256 _l2WidoRecipient) {
+    constructor(IWidoConfig _widoConfig, IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, uint256 _l2WidoRecipient) {
+        widoConfig = _widoConfig;
+        
+        // TODO: Check if any of these values got to WidoConfig.
         starknetCore = _starknetCore;
         widoRouter = _widoRouter;
         l2WidoRecipient = _l2WidoRecipient;
-
-        tokenBridgeMapping[address(0)] = _starknetEthBridge;
-    }
-
-    function getBridgeAddress(address tokenAddress) internal view returns (IStarknetEthBridge bridgeAddress) {
-        // Depending on the bridge token address, this should return the bridge address.
-        // Hopefully this lives outside of this contract so we can always upgrade
-        // to get the new addresses.
-
-        bridgeAddress = tokenBridgeMapping[tokenAddress];
     }
 
     function _bridgeTokens(address tokenAddress, uint256 amount) internal {
-        IStarknetEthBridge bridge = getBridgeAddress(tokenAddress);
-        // TODO: Check if starkgate bridge address is approved.
-        bridge.deposit{value: amount}(l2WidoRecipient);
+        address bridge = widoConfig.getBridgeAddress(tokenAddress);
+        
+        if (tokenAddress == address(0)) {
+            IStarknetEthBridge(bridge).deposit{value: amount}(l2WidoRecipient);
+        } else {
+            if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
+                ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
+            }
+            IStarknetERC20Bridge(bridge).deposit(amount, l2WidoRecipient);
+        }
     }
 
     function _sendMessage(uint256[] calldata payload) internal {

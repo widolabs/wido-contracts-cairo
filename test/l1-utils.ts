@@ -1,24 +1,28 @@
 import { ethers } from "hardhat";
+import {
+    deployMockERC20,
+    deployMockStarknetERC20Bridge,
+    deployMockStarknetEthBridge,
+    deployMockStarknetMessaging,
+    deployWidoConfig,
+    deployWidoStarknetRouter
+} from "./fixtures";
 
 export async function deployFixtures() {
-    const MockStarknetCoreFactory = await ethers.getContractFactory("MockStarknetMessaging");
-    const MockStarknetCore = await MockStarknetCoreFactory.deploy();
+    const MockStarknetCore = await deployMockStarknetMessaging();
+    const MockStarknetEthBridge = await deployMockStarknetEthBridge(MockStarknetCore);
+    const MockStarknetERC20Bridge = await deployMockStarknetERC20Bridge(MockStarknetCore);
 
-    const MockStarknetEthBridgeFactory = await ethers.getContractFactory("MockStarknetEthBridge");
-    const MockStarknetEthBridge = await MockStarknetEthBridgeFactory.deploy(
-        MockStarknetCore.address
-    );
+    const MockToken = await deployMockERC20("M1", "M1");
 
-    const widoRouter = ethers.constants.AddressZero;
-    const WidoStarknetRouterFactory = await ethers.getContractFactory("WidoStarknetRouter");
-    const l2WidoRecipient = 0;
-    const WidoStarknetRouter = await WidoStarknetRouterFactory.deploy(
-        MockStarknetCore.address,
-        widoRouter,
-        MockStarknetEthBridge.address,
-        l2WidoRecipient
-    );
+    const WidoConfig = await deployWidoConfig({
+        [ethers.constants.AddressZero]: MockStarknetEthBridge.address,
+        [MockToken.address]: MockStarknetERC20Bridge.address
+    });
+
+    const WidoStarknetRouter = await deployWidoStarknetRouter(WidoConfig, MockStarknetCore);
     return {
+        MockToken,
         MockStarknetCore,
         WidoStarknetRouter
     };

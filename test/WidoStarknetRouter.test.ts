@@ -7,15 +7,16 @@ import { deployFixtures } from "./l1-utils";
 describe("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;
+    let MockToken: Contract;
     let signer: SignerWithAddress;
 
     before(async function () {
         // Deploy contracts
         [signer] = await ethers.getSigners();
-        ({ MockStarknetCore, WidoStarknetRouter } = await deployFixtures());
+        ({ MockToken, MockStarknetCore, WidoStarknetRouter } = await deployFixtures());
     });
 
-    it("should send Starknet message", async function () {
+    it("should send ETH to Starknet", async function () {
         // await WidoStarknetRouter.executeOrder({
         //     order: {},
         //     steps: [],
@@ -60,5 +61,40 @@ describe("WidoStarknetRouter", async function () {
         );
 
         await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(2);
+    });
+
+    it("should send ERC20 to Starknet", async function () {
+        const amount = ethers.utils.parseEther("1");
+
+        await MockToken.mint(amount);
+
+        await MockToken.approve(WidoStarknetRouter.address, amount);
+
+        await WidoStarknetRouter.executeOrder(
+            {
+                inputs: [
+                    {
+                        tokenAddress: MockToken.address,
+                        amount
+                    }
+                ],
+                outputs: [
+                    {
+                        tokenAddress: MockToken.address,
+                        minOutputAmount: amount.mul(997).div(1000)
+                    }
+                ],
+                user: WidoStarknetRouter.address,
+                nonce: 0,
+                expiration: 0
+            }, // order
+            [], // steps
+            30, // feeBps
+            ethers.constants.AddressZero, // partner
+            ethers.constants.AddressZero, // bridgeTokenAddress
+            [] // destinationPayload
+        );
+
+        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(4);
     });
 });

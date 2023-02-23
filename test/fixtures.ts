@@ -1,58 +1,55 @@
-import { StarknetContractFactory } from "hardhat/types";
-import { getOZAccount } from "./util";
-import { starknet } from "hardhat";
-import { shortString } from "starknet";
+import { ethers, upgrades } from "hardhat";
+import { Contract } from "ethers";
 
-export async function deployWidoRouter() {
-    const deployer = await getOZAccount("deployer");
-    const bank = await getOZAccount("bank");
-
-    const tokenManagerContractFactory: StarknetContractFactory = await starknet.getContractFactory(
-        "WidoTokenManager"
-    );
-    const tokenManagerClassHash = await deployer.declare(tokenManagerContractFactory);
-
-    const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
-        "WidoRouter"
-    );
-    await deployer.declare(contractFactory);
-    const widoRouter = await deployer.deploy(contractFactory);
-
-    await deployer.invoke(widoRouter, "initialize", {
-        owner: deployer.address,
-        _bank: bank.address,
-        wido_token_manager_class_hash: tokenManagerClassHash
-    });
-
-    return widoRouter;
+export async function deployMockStarknetMessaging() {
+    const MockStarknetCoreFactory = await ethers.getContractFactory("MockStarknetMessaging");
+    return await MockStarknetCoreFactory.deploy();
 }
 
-export async function deployWidoL1Router(widoRouterAddress: string, bridgeTokenAddress: string[]) {
-    const deployer = await getOZAccount("deployer");
+export async function deployMockStarknetEthBridge(starknetCore: Contract) {
+    const MockStarknetEthBridgeFactory = await ethers.getContractFactory("MockStarknetEthBridge");
+    return await MockStarknetEthBridgeFactory.deploy(starknetCore.address);
+}
 
-    const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
-        "WidoL1Router"
+export async function deployMockStarknetERC20Bridge(starknetCore: Contract) {
+    const MockStarknetERC20BridgeFactory = await ethers.getContractFactory(
+        "MockStarknetERC20Bridge"
     );
-    await deployer.declare(contractFactory);
-    const widoL1Router = await deployer.deploy(contractFactory);
-
-    await deployer.invoke(widoL1Router, "initialize", {
-        owner: deployer.address,
-        wido_router: widoRouterAddress,
-        token_address: bridgeTokenAddress
-    });
-
-    return widoL1Router;
+    return await MockStarknetERC20BridgeFactory.deploy(starknetCore.address);
 }
 
 export async function deployMockERC20(name: string, symbol: string) {
-    const deployer = await getOZAccount("deployer");
+    const MockERC20Factory = await ethers.getContractFactory("MockERC20");
+    return await MockERC20Factory.deploy(name, symbol);
+}
 
-    const contractFactory: StarknetContractFactory = await starknet.getContractFactory("MockERC20");
-    await deployer.declare(contractFactory);
+export async function deployWidoConfig(mapTokenBridgeAddress: { [token: string]: string }) {
+    const WidoConfigFactory = await ethers.getContractFactory("WidoConfig");
 
-    return await deployer.deploy(contractFactory, {
-        name: shortString.encodeShortString(name),
-        symbol: shortString.encodeShortString(symbol)
-    });
+    const proxy = await upgrades.deployProxy(WidoConfigFactory);
+    const WidoConfig = await proxy.deployed();
+
+    const tokens = [];
+    const bridges = [];
+    for (const pair in mapTokenBridgeAddress) {
+        tokens.push(pair);
+        bridges.push(mapTokenBridgeAddress[pair]);
+    }
+    await WidoConfig.setBridgeAddresses(tokens, bridges);
+
+    return WidoConfig;
+}
+
+export async function deployWidoStarknetRouter(widoConfig: Contract, starknetCore: Contract) {
+    const widoRouter = ethers.constants.AddressZero;
+    const WidoStarknetRouterFactory = await ethers.getContractFactory("WidoStarknetRouter");
+    const l2WidoRecipient = 0;
+
+    const WidoStarknetRouter = await WidoStarknetRouterFactory.deploy(
+        widoConfig.address,
+        starknetCore.address,
+        widoRouter,
+        l2WidoRecipient
+    );
+    return WidoStarknetRouter;
 }
