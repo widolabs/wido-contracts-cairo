@@ -29,21 +29,20 @@ contract WidoStarknetRouter {
         l2WidoRecipient = _l2WidoRecipient;
     }
 
-    function _bridgeTokens(address tokenAddress, uint256 amount) internal {
+    function _bridgeTokens(address tokenAddress, uint256 amount, uint256 starknetRecipient) internal {
         address bridge = widoConfig.getBridgeAddress(tokenAddress);
         
         if (tokenAddress == address(0)) {
-            IStarknetEthBridge(bridge).deposit{value: amount}(l2WidoRecipient);
+            IStarknetEthBridge(bridge).deposit{value: amount}(starknetRecipient);
         } else {
             if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
                 ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
             }
-            IStarknetERC20Bridge(bridge).deposit(amount, l2WidoRecipient);
+            IStarknetERC20Bridge(bridge).deposit(amount, starknetRecipient);
         }
     }
 
-    function _sendMessage(uint256[] calldata payload) internal {
-        // TODO: Only send message when there is payload
+    function _sendMessageToL2(uint256[] calldata payload) internal {
         starknetCore.sendMessageToL2(
             l2WidoRecipient,
             EXECUTE_SELECTOR,
@@ -73,8 +72,12 @@ contract WidoStarknetRouter {
         uint256 feeBps,
         address partner,
         address bridgeTokenAddress,
+        uint256 l2RecipientUser,
         uint256[] calldata destinationPayload
     ) external payable {
+        // How do we know what tokens in the final destination chain.
+        // Final order token in this chain should be part of the bridge tokens.
+
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         // TODO: Validate if destination payload is correct.
@@ -92,13 +95,19 @@ contract WidoStarknetRouter {
 
         // TODO: Add some expectation around the minimum value for
         // to-be-bridged tokens.
+        
         // TODO: Check if destination payload amount is equal to the
         // `amount` above. Hacker should not be able to withdraw all
         // funds from the destination account.
 
-        _bridgeTokens(bridgeTokenAddress, amount);
+        if (destinationPayload.length > 0) {
+            _bridgeTokens(bridgeTokenAddress, amount, l2WidoRecipient);
 
-        // Call Wido messaging to Wido Starknet contract
-        _sendMessage(destinationPayload);
+            // Messaging to Wido Starknet contract
+            _sendMessageToL2(destinationPayload);
+        } else {
+            // Send tokens directly to the user
+            _bridgeTokens(bridgeTokenAddress, amount, l2RecipientUser);
+        }
     }
 }

@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { deployFixtures } from "./l1-utils";
 
-describe("WidoStarknetRouter", async function () {
+describe.only("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;
     let MockToken: Contract;
@@ -57,10 +57,11 @@ describe("WidoStarknetRouter", async function () {
             30, // feeBps
             ethers.constants.AddressZero, // partner
             ethers.constants.AddressZero, // bridgeTokenAddress
+            0,
             [] // destinationPayload
         );
 
-        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(2);
+        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(1);
     });
 
     it("should send ERC20 to Starknet", async function () {
@@ -92,9 +93,10 @@ describe("WidoStarknetRouter", async function () {
             30, // feeBps
             ethers.constants.AddressZero, // partner
             ethers.constants.AddressZero, // bridgeTokenAddress
+            0,
             [] // destinationPayload
         );
 
-        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(4);
+        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(2);
     });
 });
