@@ -129,8 +129,6 @@ func execute_steps{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         );
     }
 
-    // TODO: Check if response needs to be rolled up like in
-    // https://github.com/OpenZeppelin/cairo-contracts/blob/331844dcf278ccdf96ce3b63fb3e5f2c78970561/src/openzeppelin/account/library.cairo#L224
     call_contract(
         contract_address=this_step.to,
         function_selector=this_step.selector,
@@ -162,7 +160,6 @@ func collect_fees{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         assert_uint256_le(this_input.amount, balance);
     }
 
-    // TODO: Verify if fee calculation is correct.
     let (numerator: Uint256) = SafeUint256.mul(this_input.amount, Uint256(fee_bps, 0));
     let (fee: Uint256, _) = SafeUint256.div_rem(numerator, Uint256(10000, 0));
 
@@ -189,7 +186,6 @@ func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
         contract_address=this_output.token_address, account=self_address
     );
 
-    // TODO: Add which output failed slippage check
     with_attr error_message("Wido: Slippage Too High") {
         assert_uint256_lt(this_output.min_output_amount, balance);
     }
