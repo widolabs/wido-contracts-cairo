@@ -12,7 +12,8 @@ const DESTINATION_PAYLOAD_RECIPIENT = 25;
 describe.only("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;
-    let MockToken: Contract;
+    let MockToken1: Contract;
+    let MockToken2: Contract;
     let signer: SignerWithAddress;
 
     let defaultStarknetOrder: any;
@@ -21,7 +22,7 @@ describe.only("WidoStarknetRouter", async function () {
     before(async function () {
         // Deploy contracts
         [signer] = await ethers.getSigners();
-        ({ MockToken, MockStarknetCore, WidoStarknetRouter } = await deployFixtures());
+        ({ MockToken1, MockToken2, MockStarknetCore, WidoStarknetRouter } = await deployFixtures());
 
         defaultStarknetOrder = [
             {
@@ -86,12 +87,12 @@ describe.only("WidoStarknetRouter", async function () {
 
     it("should send ERC20 to Starknet", async function () {
         const amount = ethers.utils.parseEther("1");
-        await MockToken.mint(amount);
-        await MockToken.approve(WidoStarknetRouter.address, amount);
+        await MockToken1.mint(amount);
+        await MockToken1.approve(WidoStarknetRouter.address, amount);
 
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
-        starknetOrder[0].inputs[0].tokenAddress = MockToken.address;
-        starknetOrder[0].outputs[0].tokenAddress = MockToken.address;
+        starknetOrder[0].inputs[0].tokenAddress = MockToken1.address;
+        starknetOrder[0].outputs[0].tokenAddress = MockToken1.address;
         await WidoStarknetRouter.executeOrder(...starknetOrder);
 
         await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(2);
@@ -151,7 +152,7 @@ describe.only("WidoStarknetRouter", async function () {
 
     it("should verify destination payload: mismatch bridge token", async function () {
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
-        starknetOrder[STARKNET_ORDER_ORDER_INDEX].outputs[0].tokenAddress = MockToken.address;
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX].outputs[0].tokenAddress = MockToken1.address;
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = defaultDestionationPayload;
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
@@ -204,6 +205,20 @@ describe.only("WidoStarknetRouter", async function () {
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Expected calldata len in steps to match calldata len in order"
+        );
+    });
+
+    it("should fail when bridge address is not known", async function () {
+        const amount = ethers.utils.parseEther("1");
+        await MockToken2.mint(amount);
+        await MockToken2.approve(WidoStarknetRouter.address, amount);
+
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[0].inputs[0].tokenAddress = MockToken2.address;
+        starknetOrder[0].outputs[0].tokenAddress = MockToken2.address;
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "Bridge address does not exist for token"
         );
     });
 });

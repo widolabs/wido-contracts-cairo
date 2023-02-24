@@ -70,7 +70,6 @@ contract WidoStarknetRouter {
         }
     }
 
-    // TODO: Do we need to explicity specify bridgeTokenAddress?
     function executeOrder(
         IWidoRouter.Order calldata order,
         IWidoRouter.Step[] calldata steps,
@@ -110,11 +109,16 @@ contract WidoStarknetRouter {
             widoRouter.executeOrder(order, steps, feeBps, partner);
         }
 
-        // TODO: Add support for other ERC20 Tokens for bridging.
-        uint256 amount = address(this).balance;
-
-        // TODO: Add some expectation around the minimum value for
-        // to-be-bridged tokens.
+        // This amount will be the amount that is to be bridged to starknet.
+        // It is the token expected as final output of the Order.
+        // The minimum tokens to be bridged can be verified as part of the order, if there are steps. Otherwise,
+        // It would be same as the input token.
+        uint256 amount;
+        if (bridgeTokenAddress == address(0)) {
+            amount = address(this).balance;
+        } else {
+            amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
+        }
         
         // TODO: Check if destination payload amount is equal to the
         // `amount` above. Hacker should not be able to withdraw all
