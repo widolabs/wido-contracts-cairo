@@ -50,7 +50,7 @@ export async function deployWidoStarknetRouter(widoConfig: Contract, starknetCor
             WidoL2Payload: WidoL2Payload.address
         }
     });
-    const l2WidoRecipient = 0;
+    const l2WidoRecipient = 100;
 
     const WidoStarknetRouter = await WidoStarknetRouterFactory.deploy(
         widoConfig.address,

@@ -10,11 +10,13 @@ library WidoL2Payload {
         require(cur < len);
 
         // Inputs
+        require(payload[cur] > 0);
         cur += 1 + payload[cur] * 3;
         console.log(cur);
         require(cur < len);
 
         // Outputs
+        require(payload[cur] > 0);
         cur += 1 + payload[cur] * 3;
         console.log(cur);
         require(cur < len);
@@ -39,7 +41,14 @@ library WidoL2Payload {
     //     require(payload[cur] == 1);  // Only one input token
     // }
 
-    function getRecipient(uint256[] calldata payload) public returns (uint256) {
-        return 0;
+    function getRecipient(uint256[] calldata payload) public pure returns (uint256) {
+        // Assumes that the payload is coherent.
+        uint256 cur;
+        cur = 1 + payload[cur] * 3;
+        cur += 1 + payload[cur] * 3;
+        cur += 1 + payload[cur] * 5;
+        cur += 1 + payload[cur];
+
+        return payload[cur];
     }
 }

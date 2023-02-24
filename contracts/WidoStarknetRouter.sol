@@ -8,6 +8,7 @@ import "./interfaces/IWidoRouter.sol";
 import "./interfaces/IWidoConfig.sol";
 import "solmate/src/utils/SafeTransferLib.sol";
 import "./lib/WidoL2Payload.sol";
+import "hardhat/console.sol";
 
 contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
@@ -83,7 +84,7 @@ contract WidoStarknetRouter {
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         // TODO: Validate if destination payload is correct.
         if (destinationPayload.length > 0) {
-            WidoL2Payload.isCoherent(destinationPayload);
+            require(WidoL2Payload.isCoherent(destinationPayload), "Incoherent destination payload");
 
             // inputs_len == 1
             require(destinationPayload[0] == 1, "Only single token input allowed in destination");
