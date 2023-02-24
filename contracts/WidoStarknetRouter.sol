@@ -100,8 +100,6 @@ contract WidoStarknetRouter {
 
             // TODO: inputs amount == bridge token amount. Update the value here.
 
-            // TODO: sum(step call array calldata len) == calldata_len
-
             // Ensure that the recipient is same as mentioned in the order.
             require(WidoL2Payload.getRecipient(destinationPayload) == l2RecipientUser, "L2 Recipient Mismatch");
         }

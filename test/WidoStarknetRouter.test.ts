@@ -172,4 +172,40 @@ describe.only("WidoStarknetRouter", async function () {
             "Only single token output expected"
         );
     });
+
+    it("should verify destination payload: mismatch calldata len", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = [
+            "1",
+            "2087021424722619777119509474943472645767659996348769578120564519014510906823",
+            "99700000000000000",
+            "0",
+            "1",
+            "301189193390252739607480744916151674445630112229853814091039773940129353020",
+            "837400614545145344",
+            "0",
+            "1",
+            "2087021424722619777119509474943472645767659996348769578120564519014510906823",
+            "3276154100036711816479787650255760337671184333283148691045776799927075614991",
+            "133320478084672596723515863423952190972856683318200408264636951270550714417",
+            "10",
+            "0",
+            "9", // Changed from 10 -> 9
+            "2087021424722619777119509474943472645767659996348769578120564519014510906823",
+            "301189193390252739607480744916151674445630112229853814091039773940129353020",
+            "99700000000000000",
+            "0",
+            "1",
+            "0",
+            "2",
+            "2087021424722619777119509474943472645767659996348769578120564519014510906823",
+            // Removed 1 calldata
+            "0",
+            "1"
+        ];
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "Expected calldata len in steps to match calldata len in order"
+        );
+    });
 });

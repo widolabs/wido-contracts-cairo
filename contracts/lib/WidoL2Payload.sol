@@ -22,11 +22,23 @@ library WidoL2Payload {
         require(cur < len);
 
         // Steps Call Array
-        cur += 1 + payload[cur] * 5;
+        uint256 expectedCalldataLen;
+        uint256 stepCallArrayLen = payload[cur];
+        cur += 1;
+        for (uint256 i = 0; i < stepCallArrayLen; ) {
+            expectedCalldataLen += payload[cur + 3];
+            unchecked {
+                cur += 5;
+                i++;
+            }
+        }
         console.log(cur);
         require(cur < len);
 
         // Calldata
+        uint256 actualCalldataLen = payload[cur];
+        require(expectedCalldataLen == actualCalldataLen, "Expected calldata len in steps to match calldata len in order");
+
         cur += 1 + payload[cur];
         console.log(cur);
         require(cur < len);
