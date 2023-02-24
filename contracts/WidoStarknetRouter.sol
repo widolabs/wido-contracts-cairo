@@ -19,6 +19,9 @@ contract WidoStarknetRouter {
     uint256 constant DESTINATION_PAYLOAD_INPUTS_LEN_INDEX = 0;
     uint256 constant DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX = 1;
 
+    uint256 constant UINT256_PART_SIZE_BITS = 128;
+    uint256 constant UINT256_PART_SIZE = 2**UINT256_PART_SIZE_BITS;
+
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
     uint256 constant EXECUTE_SELECTOR = 1017745666394979726211766185068760164586829337678283062942418931026954492996;
 
@@ -47,7 +50,7 @@ contract WidoStarknetRouter {
         }
     }
 
-    function _sendMessageToL2(uint256[] calldata payload) internal {
+    function _sendMessageToL2(uint256[] memory payload) internal {
         starknetCore.sendMessageToL2(
             l2WidoRecipient,
             EXECUTE_SELECTOR,
@@ -119,16 +122,21 @@ contract WidoStarknetRouter {
         } else {
             amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
         }
-        
-        // TODO: Check if destination payload amount is equal to the
-        // `amount` above. Hacker should not be able to withdraw all
-        // funds from the destination account.
 
         if (destinationPayload.length > 0) {
+            uint256 amountLow = amount & (UINT256_PART_SIZE - 1);
+            uint256 amountHigh = amount >> UINT256_PART_SIZE_BITS;
+
+            // Update the destination payload input token amount to equal
+            // the amount being brided.
+            uint256[] memory updatedDestionationPayload = destinationPayload;
+            updatedDestionationPayload[2] = amountLow;
+            updatedDestionationPayload[3] = amountHigh;
+
             _bridgeTokens(bridgeTokenAddress, amount, l2WidoRecipient);
 
             // Messaging to Wido Starknet contract
-            _sendMessageToL2(destinationPayload);
+            _sendMessageToL2(updatedDestionationPayload);
         } else {
             // Send tokens directly to the user
             _bridgeTokens(bridgeTokenAddress, amount, l2RecipientUser);
