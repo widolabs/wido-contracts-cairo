@@ -7,6 +7,7 @@ import "./interfaces/IStarknetERC20Bridge.sol";
 import "./interfaces/IWidoRouter.sol";
 import "./interfaces/IWidoConfig.sol";
 import "solmate/src/utils/SafeTransferLib.sol";
+import "./lib/WidoL2Payload.sol";
 
 contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
@@ -81,6 +82,20 @@ contract WidoStarknetRouter {
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         // TODO: Validate if destination payload is correct.
+        if (destinationPayload.length > 0) {
+            WidoL2Payload.isCoherent(destinationPayload);
+
+            // inputs_len == 1
+            require(destinationPayload[0] == 1, "Only single token input allowed in destination");
+
+            // inputs token == bridgeToken
+
+            // inputs amount == bridge token amount
+            // This we would need to update after the transaction.
+
+            // recipient == l2RecipientUser
+            require(WidoL2Payload.getRecipient(destinationPayload) == l2RecipientUser);
+        }
 
         // Fetch tokens from msg.sender.
         _pullTokens(order.inputs);

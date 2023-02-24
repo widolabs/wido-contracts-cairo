@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/types";
 import "@shardlabs/starknet-hardhat-plugin";
 import "@nomiclabs/hardhat-ethers";
 import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-chai-matchers";
 import * as dotenv from "dotenv";
 import { accounts } from "./utils/network";
 
@@ -46,14 +47,15 @@ const config: HardhatUserConfig = {
                 "--seed",
                 "2745237918",
                 "--accounts",
-                "3",
+                "3"
                 // "--initial-balance", <VALUE>
                 //
                 // *Forking*
-                "--fork-network",
-                "alpha-goerli",
-                "--fork-block",
-                "707100"
+                // "--fork-network",
+                // "alpha-goerli",
+                // "--fork-block",
+                // "707100"
+
                 //
                 // *Chain ID*
                 // "--chain-id", <VALUE>
