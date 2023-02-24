@@ -10,17 +10,21 @@ async function main() {
     // The wallet was deployed using starknet deploy_account
     // FOR DEPLOYING CONTRACTS USE STARKNET CLI
 
+    // export STARKNET_NETWORK=alpha-goerli
+    // export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
+
     // starknet declare --contract starknet-artifacts/contracts/WidoTokenManager.cairo/WidoTokenManager.json
-    // CLASS HASH TOKEN MANAGER: 0x7536b25ddad2a645dbf9649762c2a345b0c1bbc6e80444d66ee5ec7219f2799
+    // CLASS HASH TOKEN MANAGER: 0x607869e676e60491e26188fd2bd0fb92a90c6e9937f33a1344ec4c4652e483a
 
     // starknet declare --contract starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter.json
-    // CLASS HASH WIDO ROUTER: 0x11dcae2b29c2c6b2855c254d25a4241c0946688289b43dbf1d46fa7d65810d7
+    // CLASS HASH WIDO ROUTER: 0x461544b30b2c61576f886f5e5fe15c8eb3a62f7e74412a3c8c9a3df94820ef9
 
-    // starknet deploy --class_hash 0x11dcae2b29c2c6b2855c254d25a4241c0946688289b43dbf1d46fa7d65810d7
-    // WIDO ROUTER CONTRACT ADDRESS: 0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad
+    // starknet deploy --class_hash 0x461544b30b2c61576f886f5e5fe15c8eb3a62f7e74412a3c8c9a3df94820ef9
+    // WIDO ROUTER CONTRACT ADDRESS: 0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06
 
-    // starknet invoke --address 0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad --abi starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter_abi.json --function initialize --inputs 0x39226f1180b108a9ee19a051a5c79dcd50d5528c6c0ce5b127a112310460376 0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36 0x7536b25ddad2a645dbf9649762c2a345b0c1bbc6e80444d66ee5ec7219f2799
+    // starknet invoke --address 0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06 --abi starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter_abi.json --function initialize --inputs 0x39226f1180b108a9ee19a051a5c79dcd50d5528c6c0ce5b127a112310460376 0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36 0x607869e676e60491e26188fd2bd0fb92a90c6e9937f33a1344ec4c4652e483a
 
+    // TODO: L1 Router is still uses the older version of the contract.
     // starknet declare --contract starknet-artifacts/contracts/WidoL1Router.cairo/WidoL1Router.json
     // CLASS HASH WIDO L1 ROUTER: 0x2a38e9c4f077f119bd459bd41c8db5198414fb3a3c257e48aeeec922e6466cb
 
