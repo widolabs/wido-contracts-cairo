@@ -85,6 +85,8 @@ contract WidoStarknetRouter {
 
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
+        require(order.outputs.length == 1, "Only single token output expected");
+
         // TODO: Validate if destination payload is correct.
         if (destinationPayload.length > 0) {
             require(WidoL2Payload.isCoherent(destinationPayload), "Incoherent destination payload");

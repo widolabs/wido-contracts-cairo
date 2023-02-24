@@ -4,8 +4,9 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { deployFixtures } from "./l1-utils";
 
-const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 6;
+const STARKNET_ORDER_ORDER_INDEX = 0;
 const STARKNET_ORDER_BRIDGE_TOKEN_INDEX = 4;
+const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 6;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
@@ -157,6 +158,18 @@ describe.only("WidoStarknetRouter", async function () {
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Bridge Token Mismatch"
+        );
+    });
+
+    it("should verify starknet order: multiple expected output tokens", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX].outputs.push({
+            tokenAddress: ethers.constants.AddressZero,
+            minOutputAmount: 1
+        });
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "Only single token output expected"
         );
     });
 });
