@@ -7,6 +7,12 @@ contract WidoConfig is IWidoConfig, OwnableUpgradeable {
     mapping(address => address) private _tokenToBridgeAddress;
     mapping(address => uint256) private _tokenToBridgedTokenAddress;
 
+    event SetBridge(
+        address tokenAddress,
+        address bridgeAddress,
+        uint256 bridgedTokenAddress
+    );
+
     function initialize() initializer public {
           __Ownable_init();
     }
@@ -26,7 +32,7 @@ contract WidoConfig is IWidoConfig, OwnableUpgradeable {
         _tokenToBridgeAddress[tokenAddress] = bridgeAddress;
         _tokenToBridgedTokenAddress[tokenAddress] = bridgedTokenAddress;
 
-        // TODO: Emit Event
+        emit SetBridge(tokenAddress, bridgeAddress, bridgedTokenAddress);
     }
 
     function setBridgeAddresses(address[] calldata tokenAddresses, address[] calldata bridgeAddresses, uint256[] calldata bridgedTokenAddresses)  external override onlyOwner {
@@ -38,7 +44,7 @@ contract WidoConfig is IWidoConfig, OwnableUpgradeable {
             _tokenToBridgeAddress[tokenAddresses[i]] = bridgeAddresses[i];
             _tokenToBridgedTokenAddress[tokenAddresses[i]] = bridgedTokenAddresses[i];
 
-            // TODO: Emit Events
+            emit SetBridge(tokenAddresses[i], bridgeAddresses[i], bridgedTokenAddresses[i]);
 
             unchecked {
                 i++;
