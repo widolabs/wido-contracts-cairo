@@ -1,9 +1,7 @@
 pragma solidity 0.8.7;
 
-import "hardhat/console.sol";
-
 library WidoL2Payload {
-    function isCoherent(uint256[] calldata payload) public returns (bool) {
+    function isCoherent(uint256[] calldata payload) public pure returns (bool) {
         uint256 len = payload.length;
         uint256 cur;
 
@@ -12,13 +10,11 @@ library WidoL2Payload {
         // Inputs
         require(payload[cur] > 0);
         cur += 1 + payload[cur] * 3;
-        console.log(cur);
         require(cur < len);
 
         // Outputs
         require(payload[cur] > 0);
         cur += 1 + payload[cur] * 3;
-        console.log(cur);
         require(cur < len);
 
         // Steps Call Array
@@ -32,7 +28,6 @@ library WidoL2Payload {
                 i++;
             }
         }
-        console.log(cur);
         require(cur < len);
 
         // Calldata
@@ -40,7 +35,6 @@ library WidoL2Payload {
         require(expectedCalldataLen == actualCalldataLen, "Expected calldata len in steps to match calldata len in order");
 
         cur += 1 + payload[cur];
-        console.log(cur);
         require(cur < len);
 
         // Recipient
@@ -48,10 +42,6 @@ library WidoL2Payload {
 
         return true;
     }
-
-    // function getOrderInputLength() public {
-    //     require(payload[cur] == 1);  // Only one input token
-    // }
 
     function getRecipient(uint256[] calldata payload) public pure returns (uint256) {
         // Assumes that the payload is coherent.
