@@ -5,6 +5,8 @@ import { expect } from "chai";
 import { deployFixtures } from "./l1-utils";
 
 const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 6;
+const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
+const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
 describe.only("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
@@ -104,13 +106,46 @@ describe.only("WidoStarknetRouter", async function () {
     });
 
     it("should verify destination payload: incoherent input", async function () {
-        const amount = ethers.utils.parseEther("1");
-
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
         const destinationPayload = [...defaultDestionationPayload];
         destinationPayload[0] = "2";
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.reverted;
+    });
+
+    it("should verify destination payload: no output token", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        const destinationPayload = [...defaultDestionationPayload];
+        destinationPayload[DESTINATION_PAYLOAD_OUTPUT_LEN] = "0";
+        starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.reverted;
+    });
+
+    it("should verify destination payload: two input token", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        const destinationPayload = [
+            "2",
+            ...defaultDestionationPayload.slice(1, 4),
+            ...defaultDestionationPayload.slice(1, 4),
+            ...defaultDestionationPayload.slice(4)
+        ];
+        starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "Only single token input allowed in destination"
+        );
+    });
+
+    it("should verify destination payload: mismatch recipient", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        const destinationPayload = [...defaultDestionationPayload];
+        destinationPayload[DESTINATION_PAYLOAD_RECIPIENT] = "2";
+        starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "L2 Recipient Mismatch"
+        );
     });
 });

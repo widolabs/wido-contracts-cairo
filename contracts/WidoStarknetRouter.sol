@@ -86,16 +86,16 @@ contract WidoStarknetRouter {
         if (destinationPayload.length > 0) {
             require(WidoL2Payload.isCoherent(destinationPayload), "Incoherent destination payload");
 
-            // inputs_len == 1
+            // Since the user can only bridge one token, allow only single token to be specified.
             require(destinationPayload[0] == 1, "Only single token input allowed in destination");
 
-            // inputs token == bridgeToken
+            // TODO: inputs token == bridgeToken
+            // TODO: inputs amount == bridge token amount. Update the value here.
 
-            // inputs amount == bridge token amount
-            // This we would need to update after the transaction.
+            // TODO: sum(step call array calldata len) == calldata_len
 
-            // recipient == l2RecipientUser
-            require(WidoL2Payload.getRecipient(destinationPayload) == l2RecipientUser);
+            // Ensure that the recipient is same as mentioned in the order.
+            require(WidoL2Payload.getRecipient(destinationPayload) == l2RecipientUser, "L2 Recipient Mismatch");
         }
 
         // Fetch tokens from msg.sender.
