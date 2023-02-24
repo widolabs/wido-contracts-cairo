@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { deployFixtures } from "./l1-utils";
 
 const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 6;
+const STARKNET_ORDER_BRIDGE_TOKEN_INDEX = 4;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
@@ -146,6 +147,16 @@ describe.only("WidoStarknetRouter", async function () {
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "L2 Recipient Mismatch"
+        );
+    });
+
+    it("should verify destination payload: mismatch bridge token", async function () {
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[STARKNET_ORDER_BRIDGE_TOKEN_INDEX] = MockToken.address;
+        starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = defaultDestionationPayload;
+
+        await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
+            "Bridge Token Mismatch"
         );
     });
 });

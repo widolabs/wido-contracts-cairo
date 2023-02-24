@@ -3,7 +3,9 @@ pragma solidity 0.8.7;
 interface IWidoConfig {
     function getBridgeAddress(address tokenAddress) external returns (address bridgeAddress);
 
-    function setBridgeAddress(address tokenAddress, address bridgeAddress) external;
+    function getBridgedTokenAddress(address tokenAddress) external returns (uint256 bridgedTokenAddress);
 
-    function setBridgeAddresses(address[] calldata tokenAddresses, address[] calldata bridgeAddresses)  external;
+    function setBridgeAddress(address tokenAddress, address bridgeAddress, uint256 bridgedTokenAddress) external;
+
+    function setBridgeAddresses(address[] calldata tokenAddresses, address[] calldata bridgeAddresses, uint256[] calldata bridgedTokenAddresses)  external;
 }

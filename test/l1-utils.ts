@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { STARKGATE_ETH } from "./address";
 import {
     deployMockERC20,
     deployMockStarknetERC20Bridge,
@@ -16,8 +17,11 @@ export async function deployFixtures() {
     const MockToken = await deployMockERC20("M1", "M1");
 
     const WidoConfig = await deployWidoConfig({
-        [ethers.constants.AddressZero]: MockStarknetEthBridge.address,
-        [MockToken.address]: MockStarknetERC20Bridge.address
+        [ethers.constants.AddressZero]: {
+            bridge: MockStarknetEthBridge.address,
+            bridgedToken: STARKGATE_ETH
+        },
+        [MockToken.address]: { bridge: MockStarknetERC20Bridge.address, bridgedToken: "0" }
     });
 
     const WidoStarknetRouter = await deployWidoStarknetRouter(WidoConfig, MockStarknetCore);

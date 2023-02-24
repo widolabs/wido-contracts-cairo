@@ -23,7 +23,9 @@ export async function deployMockERC20(name: string, symbol: string) {
     return await MockERC20Factory.deploy(name, symbol);
 }
 
-export async function deployWidoConfig(mapTokenBridgeAddress: { [token: string]: string }) {
+export async function deployWidoConfig(mapTokenBridgeAddress: {
+    [token: string]: { bridge: string; bridgedToken: string };
+}) {
     const WidoConfigFactory = await ethers.getContractFactory("WidoConfig");
 
     const proxy = await upgrades.deployProxy(WidoConfigFactory);
@@ -31,11 +33,13 @@ export async function deployWidoConfig(mapTokenBridgeAddress: { [token: string]:
 
     const tokens = [];
     const bridges = [];
+    const bridgedTokens = [];
     for (const pair in mapTokenBridgeAddress) {
         tokens.push(pair);
-        bridges.push(mapTokenBridgeAddress[pair]);
+        bridges.push(mapTokenBridgeAddress[pair].bridge);
+        bridgedTokens.push(mapTokenBridgeAddress[pair].bridgedToken);
     }
-    await WidoConfig.setBridgeAddresses(tokens, bridges);
+    await WidoConfig.setBridgeAddresses(tokens, bridges, bridgedTokens);
 
     return WidoConfig;
 }

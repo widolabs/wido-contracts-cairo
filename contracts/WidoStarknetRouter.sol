@@ -16,6 +16,9 @@ contract WidoStarknetRouter {
     IWidoConfig public widoConfig;
     IStarknetMessaging public starknetCore;
 
+    uint256 constant DESTINATION_PAYLOAD_INPUTS_LEN_INDEX = 0;
+    uint256 constant DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX = 1;
+
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
     uint256 constant EXECUTE_SELECTOR = 1017745666394979726211766185068760164586829337678283062942418931026954492996;
 
@@ -87,9 +90,12 @@ contract WidoStarknetRouter {
             require(WidoL2Payload.isCoherent(destinationPayload), "Incoherent destination payload");
 
             // Since the user can only bridge one token, allow only single token to be specified.
-            require(destinationPayload[0] == 1, "Only single token input allowed in destination");
+            require(destinationPayload[DESTINATION_PAYLOAD_INPUTS_LEN_INDEX] == 1, "Only single token input allowed in destination");
 
-            // TODO: inputs token == bridgeToken
+            // Bridge token on L1 should correspond to Bridged Token address on starknet
+            uint256 bridgedTokenAddress = widoConfig.getBridgedTokenAddress(bridgeTokenAddress);
+            require(destinationPayload[DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX] == bridgedTokenAddress, "Bridge Token Mismatch");
+
             // TODO: inputs amount == bridge token amount. Update the value here.
 
             // TODO: sum(step call array calldata len) == calldata_len
