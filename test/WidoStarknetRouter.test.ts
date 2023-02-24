@@ -5,8 +5,7 @@ import { expect } from "chai";
 import { deployFixtures } from "./l1-utils";
 
 const STARKNET_ORDER_ORDER_INDEX = 0;
-const STARKNET_ORDER_BRIDGE_TOKEN_INDEX = 4;
-const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 6;
+const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 5;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
@@ -45,7 +44,6 @@ describe.only("WidoStarknetRouter", async function () {
             [], // steps
             30, // feeBps
             ethers.constants.AddressZero, // partner
-            ethers.constants.AddressZero, // bridgeTokenAddress
             1,
             [] // destinationPayload
         ];
@@ -153,7 +151,7 @@ describe.only("WidoStarknetRouter", async function () {
 
     it("should verify destination payload: mismatch bridge token", async function () {
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
-        starknetOrder[STARKNET_ORDER_BRIDGE_TOKEN_INDEX] = MockToken.address;
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX].outputs[0].tokenAddress = MockToken.address;
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = defaultDestionationPayload;
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(

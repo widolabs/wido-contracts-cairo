@@ -76,7 +76,6 @@ contract WidoStarknetRouter {
         IWidoRouter.Step[] calldata steps,
         uint256 feeBps,
         address partner,
-        address bridgeTokenAddress,
         uint256 l2RecipientUser,
         uint256[] calldata destinationPayload
     ) external payable {
@@ -87,7 +86,8 @@ contract WidoStarknetRouter {
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         require(order.outputs.length == 1, "Only single token output expected");
 
-        // TODO: Validate if destination payload is correct.
+        address bridgeTokenAddress = order.outputs[0].tokenAddress;
+
         if (destinationPayload.length > 0) {
             require(WidoL2Payload.isCoherent(destinationPayload), "Incoherent destination payload");
 
@@ -97,8 +97,6 @@ contract WidoStarknetRouter {
             // Bridge token on L1 should correspond to Bridged Token address on starknet
             uint256 bridgedTokenAddress = widoConfig.getBridgedTokenAddress(bridgeTokenAddress);
             require(destinationPayload[DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX] == bridgedTokenAddress, "Bridge Token Mismatch");
-
-            // TODO: inputs amount == bridge token amount. Update the value here.
 
             // Ensure that the recipient is same as mentioned in the order.
             require(WidoL2Payload.getRecipient(destinationPayload) == l2RecipientUser, "L2 Recipient Mismatch");
