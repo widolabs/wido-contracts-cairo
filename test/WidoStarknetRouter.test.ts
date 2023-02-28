@@ -9,7 +9,7 @@ const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 5;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
-describe.only("WidoStarknetRouter", async function () {
+describe("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;
     let MockToken1: Contract;

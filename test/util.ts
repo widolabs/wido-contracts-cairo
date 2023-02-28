@@ -1,5 +1,10 @@
+import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { expect } from "chai";
 import { starknet } from "hardhat";
+
+import { ec, Provider, Account, uint256 } from "starknet";
+
+import hre from "hardhat";
 
 export function ensureEnvVar(varName: string): string {
     if (!process.env[varName]) {
@@ -45,4 +50,47 @@ export async function getOZAccount(type: string) {
         throw Error("Account not found");
     }
     return await starknet.OpenZeppelinAccount.getAccountFromAddress(address, privateKey);
+}
+
+export async function getOZAccountStarknetJS(type: string) {
+    let address, privateKey;
+    if (type == "deployer") {
+        address = ensureEnvVar("DEPLOYER_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("DEPLOYER_ACCOUNT_PRIVATE_KEY");
+    } else if (type == "bank") {
+        address = ensureEnvVar("BANK_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("BANK_ACCOUNT_PRIVATE_KEY");
+    } else if (type == "user") {
+        address = ensureEnvVar("USER_ACCOUNT_ADDRESS");
+        privateKey = ensureEnvVar("USER_ACCOUNT_PRIVATE_KEY");
+    } else {
+        throw Error("Account not found");
+    }
+
+    const provider = new Provider({ sequencer: { baseUrl: "http://127.0.0.1:5050" } });
+    const starkKeyPair = ec.getKeyPair(privateKey);
+    return new Account(provider, address, starkKeyPair);
+}
+
+export async function getBalanceOf(tokenAddress: string, userAddress: string) {
+    const erc20Factory = new StarknetContractFactory({
+        abiPath: "./starknet-artifacts/contracts/test/MockERC20.cairo/MockERC20_abi.json",
+        hre,
+        metadataPath: ""
+    });
+    const token = erc20Factory.getContractAt(tokenAddress);
+
+    const { balance } = await token.call("balanceOf", {
+        account: userAddress
+    });
+
+    return uint256.uint256ToBN(balance);
+}
+
+export async function approve(user: Account, tokenAddress: string, spender: string) {
+    await user.execute({
+        contractAddress: tokenAddress,
+        entrypoint: "approve",
+        calldata: [spender, uint256.UINT_128_MAX, uint256.UINT_128_MAX]
+    });
 }

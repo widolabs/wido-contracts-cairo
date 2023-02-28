@@ -47,14 +47,14 @@ const config: HardhatUserConfig = {
                 "--seed",
                 "2745237918",
                 "--accounts",
-                "3"
+                "3",
                 // "--initial-balance", <VALUE>
                 //
                 // *Forking*
-                // "--fork-network",
-                // "alpha-goerli",
-                // "--fork-block",
-                // "707100"
+                "--fork-network",
+                "alpha-goerli",
+                "--fork-block",
+                "707100"
 
                 //
                 // *Chain ID*
