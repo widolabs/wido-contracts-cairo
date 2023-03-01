@@ -61,12 +61,12 @@ export async function deployWidoStarknetRouter(
 
 async function main() {
     // Starknet Addresses from https://github.com/starknet-io/starknet-addresses
-    let WidoConfigAddress;
+    let WidoConfigAddress = "0x01E3af00D8149FdE08BF2C9baf8f5F6058C93bde";
     let WidoConfig: Contract;
 
-    let WidoL2PayloadAddress;
+    let WidoL2PayloadAddress = "0x4D21A7504384ee1702C37976A82602b68b0f8704";
 
-    let WidoStarknetRouterAddress;
+    let WidoStarknetRouterAddress = "0x000E731Bf4532c0708e1A7f66b92a5382fbE2AE9";
     let WidoStarknetRouter: Contract;
 
     const WidoRouterAddress = "0xBc34989E5aD7CDfF05b8e11d4d7EB56124a529C8";
