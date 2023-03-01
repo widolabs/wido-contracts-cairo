@@ -52,7 +52,9 @@ export async function getOZAccount(type: string) {
     return await starknet.OpenZeppelinAccount.getAccountFromAddress(address, privateKey);
 }
 
-export async function getOZAccountStarknetJS(type: string) {
+declare type NetworkName = "mainnet-alpha" | "goerli-alpha" | "goerli-alpha-2";
+
+export async function getOZAccountStarknetJS(type: string, network?: NetworkName) {
     let address, privateKey;
     if (type == "deployer") {
         address = ensureEnvVar("DEPLOYER_ACCOUNT_ADDRESS");
@@ -67,7 +69,12 @@ export async function getOZAccountStarknetJS(type: string) {
         throw Error("Account not found");
     }
 
-    const provider = new Provider({ sequencer: { baseUrl: "http://127.0.0.1:5050" } });
+    let provider: Provider;
+    if (network == null) {
+        provider = new Provider({ sequencer: { baseUrl: "http://127.0.0.1:5050" } });
+    } else {
+        provider = new Provider({ sequencer: { network: network } });
+    }
     const starkKeyPair = ec.getKeyPair(privateKey);
     return new Account(provider, address, starkKeyPair);
 }

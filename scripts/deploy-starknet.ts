@@ -24,14 +24,7 @@ async function main() {
 
     // starknet invoke --address 0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06 --abi starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter_abi.json --function initialize --inputs 0x39226f1180b108a9ee19a051a5c79dcd50d5528c6c0ce5b127a112310460376 0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36 0x607869e676e60491e26188fd2bd0fb92a90c6e9937f33a1344ec4c4652e483a
 
-    // TODO: L1 Router is still uses the older version of the contract.
-    // starknet declare --contract starknet-artifacts/contracts/WidoL1Router.cairo/WidoL1Router.json
-    // CLASS HASH WIDO L1 ROUTER: 0x2a38e9c4f077f119bd459bd41c8db5198414fb3a3c257e48aeeec922e6466cb
-
-    // starknet deploy --class_hash 0x2a38e9c4f077f119bd459bd41c8db5198414fb3a3c257e48aeeec922e6466cb
-    // WIDO L1 ROUTER CONTRACT ADDRESS: 0x06e150359ff1ef65eed29b4863441ea288877e59bd80e48bf134e4a21df87a33
-
-    // starknet invoke --address 0x06e150359ff1ef65eed29b4863441ea288877e59bd80e48bf134e4a21df87a33 --abi starknet-artifacts/contracts/WidoL1Router.cairo/WidoL1Router_abi.json --function initialize --inputs 0x018f877d8ab63df34c70366555aaea71ef20315a544bb018ef9b059475cc93ad 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
+    // For WidoL1Router deployment use the scripts
 
     const deployer = await getOZAccount("deployer");
     const bank = "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36";
