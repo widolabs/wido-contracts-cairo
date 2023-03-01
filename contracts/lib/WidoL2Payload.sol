@@ -1,6 +1,9 @@
 pragma solidity 0.8.7;
 
 library WidoL2Payload {
+    uint256 constant UINT256_PART_SIZE_BITS = 128;
+    uint256 constant UINT256_PART_SIZE = 2**UINT256_PART_SIZE_BITS;
+
     function isCoherent(uint256[] calldata payload) public pure returns (bool) {
         uint256 len = payload.length;
         uint256 cur;
@@ -52,5 +55,24 @@ library WidoL2Payload {
         cur += 1 + payload[cur];
 
         return payload[cur];
+    }
+
+    function getInputAmounts(uint256[] calldata payload) public pure returns (uint256[] memory) {
+        uint256 cur;
+        uint256 inputsLen = payload[cur];
+
+        cur += 1;
+
+        uint256[] memory amounts = new uint256[](inputsLen);
+        for (uint256 i = 0; i < inputsLen; ) {
+            uint256 result = payload[cur + 2] << UINT256_PART_SIZE_BITS | payload[cur + 1];
+            amounts[i] = result;
+
+            unchecked {
+                i++;
+                cur += 3;
+            }
+        }
+        return amounts;
     }
 }
