@@ -17,12 +17,12 @@ contract WidoConfig is IWidoConfig, OwnableUpgradeable {
           __Ownable_init();
     }
 
-    function getBridgeAddress(address tokenAddress) external override returns (address bridgeAddress) {
+    function getBridgeAddress(address tokenAddress) external override view returns (address bridgeAddress) {
         bridgeAddress = _tokenToBridgeAddress[tokenAddress];
         require(bridgeAddress != address(0), "Bridge address does not exist for token");
     }
 
-    function getBridgedTokenAddress(address tokenAddress) external override returns (uint256 bridgedTokenAddress) {
+    function getBridgedTokenAddress(address tokenAddress) external override view returns (uint256 bridgedTokenAddress) {
         bridgedTokenAddress = _tokenToBridgedTokenAddress[tokenAddress];
         require(bridgedTokenAddress != 0, "Bridged token address does not exist for token");
     }
