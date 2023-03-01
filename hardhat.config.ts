@@ -1,14 +1,18 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@shardlabs/starknet-hardhat-plugin";
 import "@nomiclabs/hardhat-ethers";
+import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-chai-matchers";
 import * as dotenv from "dotenv";
+import { accounts } from "./utils/network";
+
 dotenv.config();
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
-    solidity: "0.6.12",
+    solidity: "0.8.7",
     starknet: {
         // dockerizedVersion: "0.10.3", // alternatively choose one of the two venv options below
         // uses (my-venv) defined by `python -m venv path/to/my-venv`
@@ -18,6 +22,7 @@ const config: HardhatUserConfig = {
         // venv: "active",
         recompile: false,
         network: "integrated-devnet",
+        // network: "alphaGoerli",
         wallets: {
             OpenZeppelin: {
                 accountName: "OpenZeppelin",
@@ -39,16 +44,18 @@ const config: HardhatUserConfig = {
                 // Read about Devnet options here: https://shard-labs.github.io/starknet-devnet/docs/guide/run
                 //
                 // *Account predeployment*
-                // "--seed",
-                // "42",
-                // "--accounts",
-                // "1",
+                "--seed",
+                "2745237918",
+                "--accounts",
+                "3",
                 // "--initial-balance", <VALUE>
                 //
                 // *Forking*
-                // "--fork-network",
-                // "alpha-goerli2"
-                // "--fork-block", <VALUE>
+                "--fork-network",
+                "alpha-goerli",
+                "--fork-block",
+                "707100"
+
                 //
                 // *Chain ID*
                 // "--chain-id", <VALUE>
@@ -57,6 +64,7 @@ const config: HardhatUserConfig = {
                 // "--gas-price", <VALUE>
             ]
         },
+        goerli: { url: "https://rpc.ankr.com/eth_goerli", accounts: accounts("goerli") },
         hardhat: {}
     },
     paths: {

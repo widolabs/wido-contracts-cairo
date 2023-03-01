@@ -1,6 +1,7 @@
 node_modules
 .vscode
 .env
+.env.prod
 
 #Hardhat files
 cache
@@ -12,3 +13,5 @@ __pycache__
 
 #Starknet plugin
 starknet-artifacts
+
+.openzeppelin
