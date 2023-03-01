@@ -2,6 +2,9 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from openzeppelin.access.ownable.library import Ownable
+from openzeppelin.token.erc20.IERC20 import IERC20
+from starkware.cairo.common.uint256 import Uint256
+from interfaces.IWidoRouter import OrderInput
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(owner: felt) {
@@ -9,26 +12,50 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
+//
+// Getters
+//
+
+@view
+func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
+    return Ownable.owner();
+}
+
+//
+// Externals
+//
+
 @external
-func pull_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(user: felt) {
+func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    newOwner: felt
+) {
+    Ownable.transfer_ownership(newOwner);
     return ();
 }
 
-// contract WidoTokenManager is IWidoTokenManager, Ownable {
-//     using SafeTransferLib for ERC20;
+@external
+func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    Ownable.renounce_ownership();
+    return ();
+}
 
-// /// @notice Transfers tokens or native tokens from the user
-//     /// @param user The address of the order user
-//     /// @param inputs Array of input objects, see OrderInput and Order
-//     function pullTokens(address user, IWidoRouter.OrderInput[] calldata inputs) external override onlyOwner {
-//         for (uint256 i = 0; i < inputs.length; i++) {
-//             IWidoRouter.OrderInput calldata input = inputs[i];
+@external
+func pull_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    user: felt, inputs_len: felt, inputs: OrderInput*
+) {
+    // There is not loop in Cairo.
+    // Base condition for recursion.
+    if (inputs_len == 0) {
+        return ();
+    }
 
-// if (input.tokenAddress == address(0)) {
-//                 continue;
-//             }
-
-// ERC20(input.tokenAddress).safeTransferFrom(user, owner(), input.amount);
-//         }
-//     }
-// }
+    let (local_owner) = owner();
+    IERC20.transferFrom(
+        contract_address=inputs[0].token_address,
+        sender=user,
+        recipient=local_owner,
+        amount=inputs[0].amount,
+    );
+    pull_tokens(user, inputs_len - 1, inputs + OrderInput.SIZE);
+    return ();
+}

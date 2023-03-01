@@ -1,0 +1,256 @@
+{
+    "total_items": 25,
+    "tokens": [
+        {
+            "chainId": 15367,
+            "address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            "protocol": "dex",
+            "usdPrice": "0.0",
+            "symbol": "ETH",
+            "name": "Ether",
+            "decimals": 18,
+            "logoURI": "https://etherscan.io/images/main/empty-token.png"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x5a643907b9a4bc6a55e9069c4fd5fd1f5c79a22470690f75556c4736e34426",
+            "protocol": "dex",
+            "usdPrice": "0.0",
+            "symbol": "USDC",
+            "name": "Goerli USD Coin",
+            "decimals": 6,
+            "logoURI": "https://polygonscan.com/token/images/centre-usdc_32.png"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x14d6e45aeafa8b2f729dbc20699a5a65d1f5f2ecad479ae6e315cf8f1c7149a",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: $KULI-ETH",
+            "name": "JediSwap Pair: $KULI-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x131e96a89d5b4b5950d45178728089481d984ffad4c944646cd0c2eb5d999ea",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: $NP-ETH",
+            "name": "JediSwap Pair: $NP-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0xaa77901620bdae04ffe72235a50f53c02c4bdfccbe00e86f99ae6373064d3c",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: DAI-ETH",
+            "name": "JediSwap Pair: DAI-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x20c56a6701afec6bca8eb5946e71c681d4d7b76dbe44a95799b1a5a5234a8f6",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: DLV-ETH",
+            "name": "JediSwap Pair: DLV-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x344e832b9cd7bee26e921c7a49bedc1ce6e8f326ab34085785ce906e91e8fc3",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: ETH-MGP",
+            "name": "JediSwap Pair: ETH-MGP",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x147a51a4c1235fc5fffacb38b314a1eedcf29dea1aab5e5610d939731fc43a5",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: ETH-MGP",
+            "name": "JediSwap Pair: ETH-MGP",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x333af3f5c27698afb68ca073e4fe3d139f71cfd23d6af768825c49c32a87016",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: ETH-TST",
+            "name": "JediSwap Pair: ETH-TST",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x5e7616b4aa6fea68ffba51e5aa0e4b024d6e8c39df6936383e0a4bbcd036ba7",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: ETH-ZPM",
+            "name": "JediSwap Pair: ETH-ZPM",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x7f9dbdc749a88a54f5e9a5de11a2bfecde8582e0f2d8602ba988156d65ff45e",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: ETH-stDOGE",
+            "name": "JediSwap Pair: ETH-stDOGE",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x6a749994afce981d46f53746147ac3259e5109f3d576500df3eadff692fb141",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: GEN-ETH",
+            "name": "JediSwap Pair: GEN-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x5703223286c25fa6ebc188e5e0abb3e29b201c69ca848225184ce163e74688",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: J26JAN0-ETH",
+            "name": "JediSwap Pair: J26JAN0-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x31635389afdd3e85b479f9163c8cdcfcca3cdde936848e9b8fa64ac3af49860",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: J26JAN1-ETH",
+            "name": "JediSwap Pair: J26JAN1-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x2ad56c7c38bb328755496b5ff04a23e09175867510c9daab6327863285a7a6e",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: J26JAN2-ETH",
+            "name": "JediSwap Pair: J26JAN2-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x501abd2813c9de8cf69161a4d75f8252cfd697bb77d36de19424a4359a5dcf4",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: KTGM-ETH",
+            "name": "JediSwap Pair: KTGM-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x48e2bcee1c936192995fbeb75e22a88098193f4d4913cb6bfaffd72271b18e9",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: MDS-ETH",
+            "name": "JediSwap Pair: MDS-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x3c0fcd3ebdc533a1c6aa25b23c35d41897ec37fcd25cd5acacd02dcec6bb1a9",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: SCB-ETH",
+            "name": "JediSwap Pair: SCB-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x2a2ce249d52950ef4bd76d78f1c0ad87ca6323ff25143d8acefb5cfa7896f15",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: STRK-ETH",
+            "name": "JediSwap Pair: STRK-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x28f52998d929a360ef05fb3786ca5c4749e0d525020cda6277e07f71f4bace2",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: USDC-DAI",
+            "name": "JediSwap Pair: USDC-DAI",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x5a2b2b37f66157f767ea711cb4e034c40d41f2f5acf9ff4a19049fa11c1a884",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: USDC-ETH",
+            "name": "JediSwap Pair: USDC-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x1fce7d1b07021ea1e6911d93626924835fdc07684b0b0039d6f96aeaf4e9d81",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: USDC-J26JAN0",
+            "name": "JediSwap Pair: USDC-J26JAN0",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x26d8fb992c9588f7c4fe54a7112c9996933f8e793cab7b63e31918678f5adc5",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: USDC-J26JAN1",
+            "name": "JediSwap Pair: USDC-J26JAN1",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x2ca3d758eafe0b2dcffe44a020e0a9f40361727150515cf0a39aec6d17f8e20",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: USDC-WBTC",
+            "name": "JediSwap Pair: USDC-WBTC",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        },
+        {
+            "chainId": 15367,
+            "address": "0x18f5acc7136467c4eb67c394befadb2093bf3497396a94f3ac1fb02681407ba",
+            "protocol": "jediswap.xyz",
+            "usdPrice": "0.0",
+            "symbol": "JEDI-P: WBTC-ETH",
+            "name": "JediSwap Pair: WBTC-ETH",
+            "decimals": 18,
+            "logoURI": "https://avatars.githubusercontent.com/u/103583040"
+        }
+    ],
+    "last_updated_timestamp": 1677468796
+}
