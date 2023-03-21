@@ -9,6 +9,8 @@ const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 5;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
 
+// TODO: Add tests with steps and using ERC20 tokens, approve is missing
+//
 describe("WidoStarknetRouter", async function () {
     let MockStarknetCore: any;
     let WidoStarknetRouter: Contract;

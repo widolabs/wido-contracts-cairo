@@ -45,7 +45,7 @@ contract MockStarknetMessaging is IStarknetMessaging {
         uint256 to_address,
         uint256 selector,
         uint256[] calldata payload
-    ) external override returns (bytes32) {
+    ) external payable override returns (bytes32, uint256) {
         uint256 nonce = l1ToL2MessageNonce();
         NamedStorage.setUintValue(L1L2_MESSAGE_NONCE_TAG, nonce + 1);
         bytes32 msgHash = keccak256(
@@ -60,7 +60,7 @@ contract MockStarknetMessaging is IStarknetMessaging {
         );
         l1ToL2Messages()[msgHash] += 1;
 
-        return msgHash;
+        return (msgHash, nonce);
     }
 
     /**

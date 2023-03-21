@@ -9,7 +9,7 @@ interface IStarknetMessaging {
         uint256 to_address,
         uint256 selector,
         uint256[] calldata payload
-    ) external returns (bytes32);
+    ) external payable returns (bytes32, uint256);
 
     /**
       Consumes a message that was sent from an L2 contract.

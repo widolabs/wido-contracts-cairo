@@ -29,7 +29,7 @@ async function main() {
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
     const widoRouterCairo = "0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06";
-    const WidoStarknetContractAddress = "0x000E731Bf4532c0708e1A7f66b92a5382fbE2AE9";
+    const WidoStarknetContractAddress = "0xEF263c37d2B9daA81687d6406e041E844bD0fe04";
 
     let deployedContractAddress =
         "0x05690fd8c9c45c3e4d88693e5158d9030ad7939e501cbab01a2869c4c6424ba1";

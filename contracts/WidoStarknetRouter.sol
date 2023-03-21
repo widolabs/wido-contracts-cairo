@@ -37,11 +37,11 @@ contract WidoStarknetRouter {
         l2WidoRecipient = _l2WidoRecipient;
     }
 
-    function _bridgeTokens(address tokenAddress, uint256 amount, uint256 starknetRecipient) internal {
+    function _bridgeTokens(address tokenAddress, uint256 amount, uint256 starknetRecipient, uint256 bridgeFee) internal {
         address bridge = widoConfig.getBridgeAddress(tokenAddress);
         
         if (tokenAddress == address(0)) {
-            IStarknetEthBridge(bridge).deposit{value: amount}(starknetRecipient);
+            IStarknetEthBridge(bridge).deposit{value: amount + bridgeFee}(amount, starknetRecipient);
         } else {
             if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
                 ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
@@ -50,8 +50,8 @@ contract WidoStarknetRouter {
         }
     }
 
-    function _sendMessageToL2(uint256[] memory payload) internal {
-        starknetCore.sendMessageToL2(
+    function _sendMessageToL2(uint256[] memory payload, uint256 destinationTxFee) internal {
+        starknetCore.sendMessageToL2{value: destinationTxFee}(
             l2WidoRecipient,
             EXECUTE_SELECTOR,
             payload
@@ -79,7 +79,9 @@ contract WidoStarknetRouter {
         uint256 feeBps,
         address partner,
         uint256 l2RecipientUser,
-        uint256[] calldata destinationPayload
+        uint256[] calldata destinationPayload,
+        uint256 bridgeFee,
+        uint256 destinationTxFee
     ) external payable {
         // How do we know what tokens in the final destination chain.
         // Final order token in this chain should be part of the bridge tokens.
@@ -118,7 +120,7 @@ contract WidoStarknetRouter {
         // It would be same as the input token.
         uint256 amount;
         if (bridgeTokenAddress == address(0)) {
-            amount = address(this).balance;
+            amount = address(this).balance - bridgeFee - destinationTxFee;
         } else {
             amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
         }
@@ -133,13 +135,13 @@ contract WidoStarknetRouter {
             updatedDestionationPayload[2] = amountLow;
             updatedDestionationPayload[3] = amountHigh;
 
-            _bridgeTokens(bridgeTokenAddress, amount, l2WidoRecipient);
+            _bridgeTokens(bridgeTokenAddress, amount, l2WidoRecipient, bridgeFee);
 
             // Messaging to Wido Starknet contract
-            _sendMessageToL2(updatedDestionationPayload);
+            _sendMessageToL2(updatedDestionationPayload, destinationTxFee);
         } else {
             // Send tokens directly to the user
-            _bridgeTokens(bridgeTokenAddress, amount, l2RecipientUser);
+            _bridgeTokens(bridgeTokenAddress, amount, l2RecipientUser, bridgeFee);
         }
     }
 }
