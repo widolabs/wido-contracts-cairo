@@ -5,6 +5,8 @@ import { expect } from "chai";
 import { deployFixtures } from "./l1-utils";
 
 const STARKNET_ORDER_ORDER_INDEX = 0;
+const STARKNET_ORDER_STEPS_INDEX = 1;
+const STARKNET_ORDER_VALUE_INDEX = 8;
 const STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX = 5;
 const DESTINATION_PAYLOAD_OUTPUT_LEN = 4;
 const DESTINATION_PAYLOAD_RECIPIENT = 25;
@@ -48,7 +50,12 @@ describe("WidoStarknetRouter", async function () {
             30, // feeBps
             ethers.constants.AddressZero, // partner
             1,
-            [] // destinationPayload
+            [], // destinationPayload
+            1,
+            0,
+            {
+                value: ethers.utils.parseEther("1").add(1)
+            }
         ];
 
         defaultDestionationPayload = [
@@ -95,6 +102,7 @@ describe("WidoStarknetRouter", async function () {
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
         starknetOrder[0].inputs[0].tokenAddress = MockToken1.address;
         starknetOrder[0].outputs[0].tokenAddress = MockToken1.address;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: 1 };
         await WidoStarknetRouter.executeOrder(...starknetOrder);
 
         await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(2);
@@ -103,6 +111,7 @@ describe("WidoStarknetRouter", async function () {
     it("should verify destination payload success", async function () {
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = defaultDestionationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
         await WidoStarknetRouter.executeOrder(...starknetOrder);
 
         await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(4);
@@ -113,6 +122,7 @@ describe("WidoStarknetRouter", async function () {
         const destinationPayload = [...defaultDestionationPayload];
         destinationPayload[0] = "2";
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.reverted;
     });
@@ -122,6 +132,7 @@ describe("WidoStarknetRouter", async function () {
         const destinationPayload = [...defaultDestionationPayload];
         destinationPayload[DESTINATION_PAYLOAD_OUTPUT_LEN] = "0";
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.reverted;
     });
@@ -135,6 +146,7 @@ describe("WidoStarknetRouter", async function () {
             ...defaultDestionationPayload.slice(4)
         ];
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Only single token input allowed in destination"
@@ -146,6 +158,7 @@ describe("WidoStarknetRouter", async function () {
         const destinationPayload = [...defaultDestionationPayload];
         destinationPayload[DESTINATION_PAYLOAD_RECIPIENT] = "2";
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = destinationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "L2 Recipient Mismatch"
@@ -156,6 +169,7 @@ describe("WidoStarknetRouter", async function () {
         const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
         starknetOrder[STARKNET_ORDER_ORDER_INDEX].outputs[0].tokenAddress = MockToken1.address;
         starknetOrder[STARKNET_ORDER_DESTINATION_PAYLOAD_INDEX] = defaultDestionationPayload;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Bridge Token Mismatch"
@@ -204,6 +218,7 @@ describe("WidoStarknetRouter", async function () {
             "0",
             "1"
         ];
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: ethers.utils.parseEther("1").add(2) };
 
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Expected calldata len in steps to match calldata len in order"
@@ -222,5 +237,45 @@ describe("WidoStarknetRouter", async function () {
         await expect(WidoStarknetRouter.executeOrder(...starknetOrder)).to.be.revertedWith(
             "Bridge address does not exist for token"
         );
+    });
+
+    it("should use WidoRouter and send ERC20 to Starknet", async function () {
+        const amount = ethers.utils.parseEther("1");
+
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX]["outputs"][0].tokenAddress = MockToken1.address;
+        starknetOrder[STARKNET_ORDER_STEPS_INDEX] = [
+            {
+                fromToken: ethers.constants.AddressZero,
+                targetAddress: MockToken1.address,
+                data: MockToken1.interface.encodeFunctionData("mintWithEther", [amount]),
+                amountIndex: 4
+            }
+        ];
+        await WidoStarknetRouter.executeOrder(...starknetOrder);
+
+        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(5);
+    });
+
+    it("should use WidoRouter and send ERC20 to Starknet", async function () {
+        const amount = ethers.utils.parseEther("1");
+        await MockToken1.mint(amount);
+        await MockToken1.approve(WidoStarknetRouter.address, amount);
+
+        const starknetOrder = JSON.parse(JSON.stringify(defaultStarknetOrder));
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX]["inputs"][0].tokenAddress = MockToken1.address;
+        starknetOrder[STARKNET_ORDER_ORDER_INDEX]["outputs"][0].tokenAddress = MockToken1.address;
+        starknetOrder[STARKNET_ORDER_VALUE_INDEX] = { value: 1 };
+        starknetOrder[STARKNET_ORDER_STEPS_INDEX] = [
+            {
+                fromToken: ethers.constants.AddressZero,
+                targetAddress: MockToken1.address,
+                data: MockToken1.interface.encodeFunctionData("totalSupply"),
+                amountIndex: -1
+            }
+        ];
+        await WidoStarknetRouter.executeOrder(...starknetOrder);
+
+        await expect((await MockStarknetCore.l1ToL2MessageNonce()).toNumber()).to.equal(6);
     });
 });

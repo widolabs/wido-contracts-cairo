@@ -35,6 +35,7 @@
         "typescript": "^4.5.2"
     },
     "dependencies": {
+        "@openzeppelin/contracts": "^4.8.2",
         "@openzeppelin/contracts-upgradeable": "^4.8.1",
         "@toruslabs/starkware-crypto": "^1.1.0",
         "axios": "^1.3.4",

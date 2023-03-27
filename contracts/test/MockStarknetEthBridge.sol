@@ -25,9 +25,9 @@ contract MockStarknetEthBridge {
         messagingContract.sendMessageToL2(0, DEPOSIT_SELECTOR, payload);
     }
 
-    function deposit(uint256 l2Recipient) external payable {
+    function deposit(uint256 amount, uint256 l2Recipient) external payable {
         // The msg.value in this transaction was already credited to the contract.
-        sendMessage(msg.value, l2Recipient);
+        sendMessage(amount, l2Recipient);
     }
 
     // function withdraw(uint256 amount, address recipient) public override {

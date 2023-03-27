@@ -31,8 +31,8 @@ contract WidoStarknetRouter {
     constructor(IWidoConfig _widoConfig, IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, uint256 _l2WidoRecipient) {
         widoConfig = _widoConfig;
         
-        // TODO: Check if any of these values got to WidoConfig.
         starknetCore = _starknetCore;
+        require(address(_widoRouter) != address(0), "WidoStarknetRouter: widoRouter cannot be address(0)");
         widoRouter = _widoRouter;
         l2WidoRecipient = _l2WidoRecipient;
     }
@@ -58,7 +58,8 @@ contract WidoStarknetRouter {
         );
     }
 
-    function _pullTokens(IWidoRouter.OrderInput[] calldata inputs) internal {
+    function _pullAndApproveTokens(IWidoRouter.OrderInput[] calldata inputs) internal {
+        address widoTokenManager = address(widoRouter.widoTokenManager());
         for (uint256 i = 0; i < inputs.length;) {
             IWidoRouter.OrderInput calldata input = inputs[i];
 
@@ -70,6 +71,10 @@ contract WidoStarknetRouter {
             }
 
             ERC20(input.tokenAddress).safeTransferFrom(msg.sender, address(this), input.amount);
+
+            if (ERC20(input.tokenAddress).allowance(address(this), widoTokenManager) < input.amount) {
+                ERC20(input.tokenAddress).safeApprove(widoTokenManager, type(uint256).max);
+            }
         }
     }
 
@@ -107,11 +112,11 @@ contract WidoStarknetRouter {
         }
 
         // Fetch tokens from msg.sender.
-        _pullTokens(order.inputs);
+        _pullAndApproveTokens(order.inputs);
         
         // Run Execute Order in L1
         if (steps.length > 0) {
-            widoRouter.executeOrder(order, steps, feeBps, partner);
+            widoRouter.executeOrder{value: msg.value - bridgeFee - destinationTxFee}(order, steps, feeBps, partner);
         }
 
         // This amount will be the amount that is to be bridged to starknet.

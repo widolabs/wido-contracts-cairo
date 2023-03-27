@@ -44,11 +44,19 @@ export async function deployWidoConfig(mapTokenBridgeAddress: {
     return WidoConfig;
 }
 
-export async function deployWidoStarknetRouter(widoConfig: Contract, starknetCore: Contract) {
+export async function deployWidoRouter(wrappedNative: string, bank: string) {
+    const WidoRouterFactory = await ethers.getContractFactory("WidoRouter");
+    return await WidoRouterFactory.deploy(wrappedNative, bank);
+}
+
+export async function deployWidoStarknetRouter(
+    widoConfig: Contract,
+    starknetCore: Contract,
+    widoRouter: Contract
+) {
     const WidoL2PayloadFactory = await ethers.getContractFactory("WidoL2Payload");
     const WidoL2Payload = await WidoL2PayloadFactory.deploy();
 
-    const widoRouter = ethers.constants.AddressZero;
     const WidoStarknetRouterFactory = await ethers.getContractFactory("WidoStarknetRouter", {
         libraries: {
             WidoL2Payload: WidoL2Payload.address
@@ -59,7 +67,7 @@ export async function deployWidoStarknetRouter(widoConfig: Contract, starknetCor
     const WidoStarknetRouter = await WidoStarknetRouterFactory.deploy(
         widoConfig.address,
         starknetCore.address,
-        widoRouter,
+        widoRouter.address,
         l2WidoRecipient
     );
     return WidoStarknetRouter;

@@ -11,4 +11,8 @@ contract MockERC20 is ERC20 {
     function mint(uint256 amount) external {
         _mint(msg.sender, amount);
     }
+
+    function mintWithEther(uint256 amount) external payable {
+        _mint(msg.sender, amount);
+    }
 }
