@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.7;
 
+import "../WidoTokenManager.sol";
+
 interface IWidoRouter {
     /// @notice OrderInput object describing the desired token inputs
     /// @param tokenAddress Address of the input token
@@ -45,6 +47,8 @@ interface IWidoRouter {
         bytes data;
         int32 amountIndex;
     }
+
+    function widoTokenManager() external view returns (WidoTokenManager);
 
     function verifyOrder(Order calldata order, uint8 v, bytes32 r, bytes32 s) external view returns (bool);
 

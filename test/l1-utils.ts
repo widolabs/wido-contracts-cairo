@@ -6,6 +6,7 @@ import {
     deployMockStarknetEthBridge,
     deployMockStarknetMessaging,
     deployWidoConfig,
+    deployWidoRouter,
     deployWidoStarknetRouter
 } from "./fixtures";
 
@@ -25,11 +26,21 @@ export async function deployFixtures() {
         [MockToken1.address]: { bridge: MockStarknetERC20Bridge.address, bridgedToken: "1" }
     });
 
-    const WidoStarknetRouter = await deployWidoStarknetRouter(WidoConfig, MockStarknetCore);
+    const WidoRouter = await deployWidoRouter(
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000001"
+    );
+
+    const WidoStarknetRouter = await deployWidoStarknetRouter(
+        WidoConfig,
+        MockStarknetCore,
+        WidoRouter
+    );
     return {
         MockToken1,
         MockToken2,
         MockStarknetCore,
+        WidoRouter,
         WidoStarknetRouter
     };
 }
