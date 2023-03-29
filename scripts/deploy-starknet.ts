@@ -13,6 +13,7 @@ async function deployWidoRouter(deployer: Account, bank: string) {
         tokenManagerContractFactory.metadataPath
     );
 
+    console.log("Declaring WidoTokenManager contract...");
     const tokenManagerDeclareResponse = await deployer.declare({
         contract: json.parse(
             fs.readFileSync(tokenManagerContractFactory.metadataPath).toString("ascii")
@@ -20,6 +21,9 @@ async function deployWidoRouter(deployer: Account, bank: string) {
         classHash: tokenManagerClassHash
     });
     console.log(tokenManagerDeclareResponse);
+
+    const { transaction_hash } = tokenManagerDeclareResponse;
+    await deployer.waitForTransaction(transaction_hash, undefined, ["ACCEPTED_ON_L2"]);
 
     const RouterContractFactory: StarknetContractFactory = await starknet.getContractFactory(
         "WidoRouter"
@@ -30,6 +34,7 @@ async function deployWidoRouter(deployer: Account, bank: string) {
         fs.readFileSync(RouterContractFactory.metadataPath).toString("ascii")
     );
 
+    console.log("Declaring and deploying WidoRouter contract...");
     const deployResponse = await deployer.declareDeploy({
         contract: compiledWidoRouter,
         classHash
@@ -57,7 +62,7 @@ async function deployWidoRouter(deployer: Account, bank: string) {
 export const CONTRACTS = {
     "mainnet-alpha": {
         bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
-        wido_router: ""
+        wido_router: "0x7ee4864babdb42fb752870241a8613b28b575b159cab931ce71c10de31be070"
     },
     "goerli-alpha": {
         bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
@@ -66,13 +71,14 @@ export const CONTRACTS = {
 };
 
 async function main() {
-    const network = "goerli-alpha";
-    // const network = "mainnet-alpha";
+    // const network = "goerli-alpha";
+    const network = "mainnet-alpha";
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
     let widoRouterAddress = CONTRACTS[network]["wido_router"];
     const bank = CONTRACTS[network]["bank"];
 
+    console.log(widoRouterAddress);
     if (widoRouterAddress == "") {
         widoRouterAddress = await deployWidoRouter(deployer, bank);
         console.log(`WidoRouter deployed to: ${adaptAddress(widoRouterAddress)}`);

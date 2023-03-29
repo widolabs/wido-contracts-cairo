@@ -67,10 +67,10 @@ const CONTRACTS: { [key: string]: { [key: string]: string } } = {
     mainnet: {
         "wido-config": "0x2fBaB6FDC1b9236e74375Ac4331F867967E6b309",
         "wido-l2-payload": "0x32C2757Fe876013D2D6cb3460071676F8D70A49E",
-        "wido-starknet-router": "0x0a8a3866c2e6fc7845AAe1096D54Ff9fF3AFcf8D",
+        "wido-starknet-router": "0xb0FC7612bbe59ce5967Bb418e7207cD176CA7681",
         "starknet-core": "0xc662c410C0ECf747543f5bA90660f6ABeBD9C8c4",
         "wido-router": "0x7Fb69e8fb1525ceEc03783FFd8a317bafbDfD394",
-        "l1-router": "",
+        "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1",
         WidoStarknetRouterFactory: "contracts/WidoStarknetRouter.sol:WidoStarknetRouter"
     },
     goerli: {
@@ -85,7 +85,7 @@ const CONTRACTS: { [key: string]: { [key: string]: string } } = {
 };
 
 async function main() {
-    const network = "goerli";
+    const network = "mainnet";
     // Starknet Addresses from https://github.com/starknet-io/starknet-addresses
 
     let WidoConfigAddress = CONTRACTS[network]["wido-config"];

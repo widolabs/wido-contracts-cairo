@@ -16,6 +16,7 @@ async function deployWidoL1Router(deployer: Account) {
         fs.readFileSync(l1RouterContractFactory.metadataPath).toString("ascii")
     );
 
+    console.log("Declaring and deploying WidoL1Router contract...");
     const deployResponse = await deployer.declareDeploy({
         contract: compiledL1Router,
         classHash
@@ -26,8 +27,8 @@ async function deployWidoL1Router(deployer: Account) {
 
 const CONTRACTS = {
     "mainnet-alpha": {
-        "l1-router": "0x7244f625106ad12fe95e1dd5a4d52576a4bfa2c129d2785afabc57d71ad6b27",
-        "starknet-router": "0x0a8a3866c2e6fc7845AAe1096D54Ff9fF3AFcf8D"
+        "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1",
+        "starknet-router": "0xb0FC7612bbe59ce5967Bb418e7207cD176CA7681"
     },
     "goerli-alpha": {
         "l1-router": "0x77b746eeb2a126c616da01c64290df5dfc79be6b73f8e7ff98a6dd888754368",
@@ -36,8 +37,8 @@ const CONTRACTS = {
 };
 
 async function main() {
-    // const network = "mainnet-alpha";
-    const network = "goerli-alpha";
+    const network = "mainnet-alpha";
+    // const network = "goerli-alpha";
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
     const widoRouter = ROUTER_CONTRACTS[network].wido_router;
@@ -45,6 +46,7 @@ async function main() {
 
     let deployedL1RouterAddress = CONTRACTS[network]["l1-router"];
 
+    console.log(deployedL1RouterAddress);
     if (deployedL1RouterAddress == null || deployedL1RouterAddress == "") {
         deployedL1RouterAddress = await deployWidoL1Router(deployer);
     }
