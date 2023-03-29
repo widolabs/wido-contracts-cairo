@@ -39,7 +39,7 @@ func approve_wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
 
 @external
 func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, wido_router: felt, token_address_len: felt, token_address: felt*
+    owner: felt, wido_router: felt
 ) {
     Initializable.initialize();
     Ownable.initializer(owner);

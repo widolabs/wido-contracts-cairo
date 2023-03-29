@@ -54,32 +54,41 @@ async function deployWidoRouter(deployer: Account, bank: string) {
     return deployedContractAddress;
 }
 
-async function main() {
-    let deployedContractAddress =
-        "0x53509b3ead4d93635af5f7bf477d115e635b910fd840821dda8d9c0c6e0e79c";
+export const CONTRACTS = {
+    "mainnet-alpha": {
+        bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
+        wido_router: ""
+    },
+    "goerli-alpha": {
+        bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
+        wido_router: "0x1c954b202470bedc8fb47cb244561a2a76180affc32be3d8a8e384d25f3c218"
+    }
+};
 
-    // const network = "goerli-alpha";
-    const network = "mainnet-alpha";
+async function main() {
+    const network = "goerli-alpha";
+    // const network = "mainnet-alpha";
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
-    const bank = "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36";
+    let widoRouterAddress = CONTRACTS[network]["wido_router"];
+    const bank = CONTRACTS[network]["bank"];
 
-    if (deployedContractAddress == "") {
-        deployedContractAddress = await deployWidoRouter(deployer, bank);
-        console.log(`WidoRouter deployed to: ${adaptAddress(deployedContractAddress)}`);
+    if (widoRouterAddress == "") {
+        widoRouterAddress = await deployWidoRouter(deployer, bank);
+        console.log(`WidoRouter deployed to: ${adaptAddress(widoRouterAddress)}`);
     }
 
     const widoTokenManagerResponse = await deployer.callContract({
-        contractAddress: deployedContractAddress,
+        contractAddress: widoRouterAddress,
         entrypoint: "wido_token_manager"
     });
     const [wido_token_manager] = widoTokenManagerResponse.result;
     console.log(`WidoTokenManager deployed to: ${adaptAddress(wido_token_manager)}`);
 }
 
-main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+// main()
+//     .then(() => process.exit(0))
+//     .catch((error) => {
+//         console.error(error);
+//         process.exit(1);
+//     });
