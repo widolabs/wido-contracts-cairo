@@ -187,7 +187,7 @@ func check_and_return_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     );
 
     with_attr error_message("Wido: Slippage Too High") {
-        assert_uint256_lt(this_output.min_output_amount, balance);
+        assert_uint256_le(this_output.min_output_amount, balance);
     }
 
     IERC20.transfer(
