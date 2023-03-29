@@ -39,23 +39,30 @@ func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return ();
 }
 
-@external
-func pull_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    user: felt, inputs_len: felt, inputs: OrderInput*
+func pull_tokens_internal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    user: felt, recipient: felt, inputs_len: felt, inputs: OrderInput*
 ) {
-    // There is not loop in Cairo.
-    // Base condition for recursion.
     if (inputs_len == 0) {
         return ();
     }
 
-    let (local_owner) = owner();
     IERC20.transferFrom(
         contract_address=inputs[0].token_address,
         sender=user,
-        recipient=local_owner,
+        recipient=recipient,
         amount=inputs[0].amount,
     );
-    pull_tokens(user, inputs_len - 1, inputs + OrderInput.SIZE);
+    pull_tokens_internal(user, recipient, inputs_len - 1, inputs + OrderInput.SIZE);
+    return ();
+}
+
+@external
+func pull_tokens{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    user: felt, inputs_len: felt, inputs: OrderInput*
+) {
+    Ownable.assert_only_owner();
+
+    let (local_owner) = owner();
+    pull_tokens_internal(user, local_owner, inputs_len, inputs);
     return ();
 }
