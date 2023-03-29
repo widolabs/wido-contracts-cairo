@@ -4,7 +4,7 @@ import { adaptAddress, getOZAccountStarknetJS } from "../test/util";
 import hre from "hardhat";
 import { Account, Contract, json, Provider, stark } from "starknet";
 import * as fs from "fs";
-import { STARKGATE_ETH, STARKNET_TESTNET_USDC } from "../test/address";
+import { STARKGATE_ETH, STARKNET_TESTNET_USDC, STARKNET_USDC } from "../test/address";
 
 async function deployWidoL1Router(deployer: Account) {
     const l1RouterContractFactory: StarknetContractFactory = await starknet.getContractFactory(
@@ -25,16 +25,17 @@ async function deployWidoL1Router(deployer: Account) {
 }
 
 async function main() {
-    const network = "goerli-alpha";
+    const network = "mainnet-alpha";
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
-    const widoRouterCairo = "0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06";
-    const WidoStarknetContractAddress = "0xEF263c37d2B9daA81687d6406e041E844bD0fe04";
+    // const widoRouterCairo = "0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06";  // testnet
+    const widoRouterCairo = "0x53509b3ead4d93635af5f7bf477d115e635b910fd840821dda8d9c0c6e0e79c"; // mainnet
+    const WidoStarknetContractAddress = "0x0a8a3866c2e6fc7845AAe1096D54Ff9fF3AFcf8D";
 
     let deployedContractAddress =
-        "0x05690fd8c9c45c3e4d88693e5158d9030ad7939e501cbab01a2869c4c6424ba1";
+        "0x7244f625106ad12fe95e1dd5a4d52576a4bfa2c129d2785afabc57d71ad6b27";
 
-    if (deployedContractAddress == null) {
+    if (deployedContractAddress == null || deployedContractAddress == "") {
         deployedContractAddress = await deployWidoL1Router(deployer);
     }
 
@@ -45,8 +46,9 @@ async function main() {
     //         entrypoint: "initialize",
     //         calldata: stark.compileCalldata({
     //             owner: deployer.address,
-    //             wido_router: widoRouter,
-    //             token_address: [STARKGATE_ETH, STARKNET_TESTNET_USDC]
+    //             wido_router: widoRouterCairo,
+    //             // token_address: [STARKGATE_ETH, STARKNET_TESTNET_USDC]
+    //             token_address: [STARKGATE_ETH, STARKNET_USDC]
     //         })
     //     }
     // ]);

@@ -46,7 +46,7 @@ contract WidoStarknetRouter {
             if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
                 ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
             }
-            IStarknetERC20Bridge(bridge).deposit(amount, starknetRecipient);
+            IStarknetERC20Bridge(bridge).deposit{value: bridgeFee}(amount, starknetRecipient);
         }
     }
 
@@ -88,12 +88,10 @@ contract WidoStarknetRouter {
         uint256 bridgeFee,
         uint256 destinationTxFee
     ) external payable {
-        // How do we know what tokens in the final destination chain.
-        // Final order token in this chain should be part of the bridge tokens.
-
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         require(order.outputs.length == 1, "Only single token output expected");
+        require(msg.value >= bridgeFee + destinationTxFee, "Insufficient fee");
 
         address bridgeTokenAddress = order.outputs[0].tokenAddress;
 

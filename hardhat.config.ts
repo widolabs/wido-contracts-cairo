@@ -21,7 +21,8 @@ const config: HardhatUserConfig = {
         // uses the currently active Python environment (hopefully with available Starknet commands!)
         // venv: "active",
         recompile: false,
-        network: "integrated-devnet",
+        // network: "integrated-devnet",
+        network: "devnet",
         // network: "alphaGoerli",
         wallets: {
             OpenZeppelin: {
@@ -54,7 +55,7 @@ const config: HardhatUserConfig = {
                 "--fork-network",
                 "alpha-goerli",
                 "--fork-block",
-                "707100"
+                "780100"
 
                 //
                 // *Chain ID*
@@ -65,6 +66,7 @@ const config: HardhatUserConfig = {
             ]
         },
         goerli: { url: "https://rpc.ankr.com/eth_goerli", accounts: accounts("goerli") },
+        mainnet: { url: "https://eth.llamarpc.com", accounts: accounts("mainnet") },
         hardhat: {}
     },
     paths: {
