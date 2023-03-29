@@ -55,12 +55,12 @@ contract WidoStarknetRouter {
         address bridge = widoConfig.getBridgeAddress(tokenAddress);
         
         if (tokenAddress == address(0)) {
-            IStarknetEthBridge(bridge).deposit{value: amount + bridgeFee}(starknetRecipient);
+            IStarknetEthBridge(bridge).deposit{value: amount + bridgeFee}(amount, starknetRecipient);
         } else {
             if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
                 ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
             }
-            IStarknetERC20Bridge(bridge).deposit(amount, starknetRecipient);
+            IStarknetERC20Bridge(bridge).deposit{value: bridgeFee}(amount, starknetRecipient);
         }
     }
 
