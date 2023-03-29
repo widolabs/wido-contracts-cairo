@@ -66,6 +66,17 @@ func set_l1_contract_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 
 // TODO: Add a withdraw function as well.
 
+@external
+func rescue_funds{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_address: felt, recipient: felt, amount: Uint256
+) {
+    Ownable.assert_only_owner();
+
+    IERC20.transfer(contract_address=token_address, recipient=recipient, amount=amount);
+
+    return ();
+}
+
 @l1_handler
 func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     from_address: felt,
