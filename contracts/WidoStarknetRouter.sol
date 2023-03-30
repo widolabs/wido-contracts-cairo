@@ -28,6 +28,20 @@ contract WidoStarknetRouter {
     IWidoRouter public widoRouter;
     uint256 public l2WidoRecipient;
 
+    /// @notice Event emitted when the order is fulfilled
+    /// @param order The order that was fulfilled
+    /// @param sender The msg.sender
+    /// @param recipient Recipient of the final tokens of the order
+    /// @param feeBps Fee in basis points (bps)
+    /// @param partner Partner address
+    event OrderInitiated(
+        IWidoRouter.Order order,
+        address indexed sender,
+        uint256 recipient,
+        uint256 feeBps,
+        address indexed partner
+    );
+
     constructor(IWidoConfig _widoConfig, IStarknetMessaging _starknetCore, IWidoRouter _widoRouter, uint256 _l2WidoRecipient) {
         widoConfig = _widoConfig;
         
@@ -46,7 +60,7 @@ contract WidoStarknetRouter {
             if (ERC20(tokenAddress).allowance(address(this), bridge) < amount) {
                 ERC20(tokenAddress).safeApprove(bridge, type(uint256).max);
             }
-            IStarknetERC20Bridge(bridge).deposit(amount, starknetRecipient);
+            IStarknetERC20Bridge(bridge).deposit{value: bridgeFee}(amount, starknetRecipient);
         }
     }
 
@@ -88,12 +102,10 @@ contract WidoStarknetRouter {
         uint256 bridgeFee,
         uint256 destinationTxFee
     ) external payable {
-        // How do we know what tokens in the final destination chain.
-        // Final order token in this chain should be part of the bridge tokens.
-
         // Do validations
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         require(order.outputs.length == 1, "Only single token output expected");
+        require(msg.value >= bridgeFee + destinationTxFee, "Insufficient fee");
 
         address bridgeTokenAddress = order.outputs[0].tokenAddress;
 
@@ -148,5 +160,9 @@ contract WidoStarknetRouter {
             // Send tokens directly to the user
             _bridgeTokens(bridgeTokenAddress, amount, l2RecipientUser, bridgeFee);
         }
+        emit OrderInitiated(order, msg.sender, l2RecipientUser, feeBps, partner);
     }
+
+    /// @notice Allow receiving of native tokens
+    receive() external payable {}
 }

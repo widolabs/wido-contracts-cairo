@@ -1,10 +1,10 @@
 import { starknet } from "hardhat";
 import { StarknetContractFactory } from "hardhat/types";
-import { adaptAddress, getOZAccountStarknetJS } from "../test/util";
+import { getOZAccountStarknetJS } from "../test/util";
 import hre from "hardhat";
-import { Account, Contract, json, Provider, stark } from "starknet";
+import { Account, json, stark } from "starknet";
 import * as fs from "fs";
-import { STARKGATE_ETH, STARKNET_TESTNET_USDC } from "../test/address";
+import { CONTRACTS as ROUTER_CONTRACTS } from "./deploy-starknet";
 
 async function deployWidoL1Router(deployer: Account) {
     const l1RouterContractFactory: StarknetContractFactory = await starknet.getContractFactory(
@@ -16,6 +16,7 @@ async function deployWidoL1Router(deployer: Account) {
         fs.readFileSync(l1RouterContractFactory.metadataPath).toString("ascii")
     );
 
+    console.log("Declaring and deploying WidoL1Router contract...");
     const deployResponse = await deployer.declareDeploy({
         contract: compiledL1Router,
         classHash
@@ -24,29 +25,40 @@ async function deployWidoL1Router(deployer: Account) {
     return deployResponse.deploy.contract_address;
 }
 
+const CONTRACTS = {
+    "mainnet-alpha": {
+        "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1",
+        "starknet-router": "0x2f6427D6437d69A2A2AE5Cc7cd6496Fd4C170365"
+    },
+    "goerli-alpha": {
+        "l1-router": "0x77b746eeb2a126c616da01c64290df5dfc79be6b73f8e7ff98a6dd888754368",
+        "starknet-router": "0x12B3b353099861d5bef14aB0157d7a404Bd0cD6a"
+    }
+};
+
 async function main() {
-    const network = "goerli-alpha";
+    const network = "mainnet-alpha";
+    // const network = "goerli-alpha";
     const deployer = await getOZAccountStarknetJS("deployer", network);
 
-    const widoRouterCairo = "0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06";
-    const WidoStarknetContractAddress = "0xEF263c37d2B9daA81687d6406e041E844bD0fe04";
+    const widoRouter = ROUTER_CONTRACTS[network].wido_router;
+    const WidoStarknetContractAddress = CONTRACTS[network]["starknet-router"];
 
-    let deployedContractAddress =
-        "0x05690fd8c9c45c3e4d88693e5158d9030ad7939e501cbab01a2869c4c6424ba1";
+    let deployedL1RouterAddress = CONTRACTS[network]["l1-router"];
 
-    if (deployedContractAddress == null) {
-        deployedContractAddress = await deployWidoL1Router(deployer);
+    console.log(deployedL1RouterAddress);
+    if (deployedL1RouterAddress == null || deployedL1RouterAddress == "") {
+        deployedL1RouterAddress = await deployWidoL1Router(deployer);
     }
 
     // TODO: Enable to initialize L1 Router Contract
     // const initializeResponse = await deployer.execute([
     //     {
-    //         contractAddress: deployedContractAddress,
+    //         contractAddress: deployedL1RouterAddress,
     //         entrypoint: "initialize",
     //         calldata: stark.compileCalldata({
     //             owner: deployer.address,
-    //             wido_router: widoRouter,
-    //             token_address: [STARKGATE_ETH, STARKNET_TESTNET_USDC]
+    //             wido_router: widoRouter
     //         })
     //     }
     // ]);
@@ -55,7 +67,7 @@ async function main() {
     // TODO: Enable to set L1 Router Address
     // const setResponse = await deployer.execute([
     //     {
-    //         contractAddress: deployedContractAddress,
+    //         contractAddress: deployedL1RouterAddress,
     //         entrypoint: "set_l1_contract_address",
     //         calldata: stark.compileCalldata({
     //             l1_contract_address: WidoStarknetContractAddress

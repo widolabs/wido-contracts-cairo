@@ -1,64 +1,100 @@
 import { starknet } from "hardhat";
 import { StarknetContractFactory } from "hardhat/types";
-import { adaptAddress, getOZAccount } from "../test/util";
+import { Account, json, stark } from "starknet";
+import hre from "hardhat";
+import { adaptAddress, getOZAccountStarknetJS } from "../test/util";
+import * as fs from "fs";
 
-async function main() {
-    console.log("getting account");
-
-    // TODO: Get OZ account doesn't work for alphaGoerli
-    // Not sure if it is due to the wallet deployed
-    // The wallet was deployed using starknet deploy_account
-    // FOR DEPLOYING CONTRACTS USE STARKNET CLI
-
-    // export STARKNET_NETWORK=alpha-goerli
-    // export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
-
-    // starknet declare --contract starknet-artifacts/contracts/WidoTokenManager.cairo/WidoTokenManager.json
-    // CLASS HASH TOKEN MANAGER: 0x607869e676e60491e26188fd2bd0fb92a90c6e9937f33a1344ec4c4652e483a
-
-    // starknet declare --contract starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter.json
-    // CLASS HASH WIDO ROUTER: 0x461544b30b2c61576f886f5e5fe15c8eb3a62f7e74412a3c8c9a3df94820ef9
-
-    // starknet deploy --class_hash 0x461544b30b2c61576f886f5e5fe15c8eb3a62f7e74412a3c8c9a3df94820ef9
-    // WIDO ROUTER CONTRACT ADDRESS: 0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06
-
-    // starknet invoke --address 0x05a0a35f386dc7e41621afcf3de7e6a74bc88ffe1c2c7e3fef0c3fa3f5154c06 --abi starknet-artifacts/contracts/WidoRouter.cairo/WidoRouter_abi.json --function initialize --inputs 0x39226f1180b108a9ee19a051a5c79dcd50d5528c6c0ce5b127a112310460376 0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36 0x607869e676e60491e26188fd2bd0fb92a90c6e9937f33a1344ec4c4652e483a
-
-    // For WidoL1Router deployment use the scripts
-
-    const deployer = await getOZAccount("deployer");
-    const bank = "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36";
-
+async function deployWidoRouter(deployer: Account, bank: string) {
     const tokenManagerContractFactory: StarknetContractFactory = await starknet.getContractFactory(
         "WidoTokenManager"
     );
-    console.log("before declaring token manager contract");
-    const tokenManagerClassHash = await deployer.declare(tokenManagerContractFactory);
-    console.log("declared token manager contract");
+    const tokenManagerClassHash = await hre.starknetWrapper.getClassHash(
+        tokenManagerContractFactory.metadataPath
+    );
 
-    const contractFactory: StarknetContractFactory = await starknet.getContractFactory(
+    console.log("Declaring WidoTokenManager contract...");
+    const tokenManagerDeclareResponse = await deployer.declare({
+        contract: json.parse(
+            fs.readFileSync(tokenManagerContractFactory.metadataPath).toString("ascii")
+        ),
+        classHash: tokenManagerClassHash
+    });
+    console.log(tokenManagerDeclareResponse);
+
+    const { transaction_hash } = tokenManagerDeclareResponse;
+    await deployer.waitForTransaction(transaction_hash, undefined, ["ACCEPTED_ON_L2"]);
+
+    const RouterContractFactory: StarknetContractFactory = await starknet.getContractFactory(
         "WidoRouter"
     );
-    const classHash = await deployer.declare(contractFactory);
-    console.log(`WidoTokenManager class hash: ${tokenManagerClassHash}`);
-    console.log(`WidoRouter class hash: ${classHash}`);
-    const widoRouter = await deployer.deploy(contractFactory);
+    const classHash = await hre.starknetWrapper.getClassHash(RouterContractFactory.metadataPath);
 
-    await deployer.invoke(widoRouter, "initialize", {
-        owner: deployer.address,
-        _bank: bank,
-        wido_token_manager_class_hash: tokenManagerClassHash
+    const compiledWidoRouter = json.parse(
+        fs.readFileSync(RouterContractFactory.metadataPath).toString("ascii")
+    );
+
+    console.log("Declaring and deploying WidoRouter contract...");
+    const deployResponse = await deployer.declareDeploy({
+        contract: compiledWidoRouter,
+        classHash
     });
+    console.log(deployResponse);
 
-    const { wido_token_manager } = await widoRouter.call("wido_token_manager");
+    const deployedContractAddress = deployResponse.deploy.contract_address;
 
-    console.log(`WidoRouter deployed to: ${adaptAddress(widoRouter.address)}`);
+    const initializeResponse = await deployer.execute([
+        {
+            contractAddress: deployedContractAddress,
+            entrypoint: "initialize",
+            calldata: stark.compileCalldata({
+                owner: deployer.address,
+                _bank: bank,
+                wido_token_manager_class_hash: tokenManagerClassHash
+            })
+        }
+    ]);
+    console.log(initializeResponse);
+
+    return deployedContractAddress;
+}
+
+export const CONTRACTS = {
+    "mainnet-alpha": {
+        bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
+        wido_router: "0x7ee4864babdb42fb752870241a8613b28b575b159cab931ce71c10de31be070"
+    },
+    "goerli-alpha": {
+        bank: "0x02a2b6783391CE14773F7Ed61B9c84a2F56815c1F1475E5366116C308721BB36",
+        wido_router: "0x1c954b202470bedc8fb47cb244561a2a76180affc32be3d8a8e384d25f3c218"
+    }
+};
+
+async function main() {
+    // const network = "goerli-alpha";
+    const network = "mainnet-alpha";
+    const deployer = await getOZAccountStarknetJS("deployer", network);
+
+    let widoRouterAddress = CONTRACTS[network]["wido_router"];
+    const bank = CONTRACTS[network]["bank"];
+
+    console.log(widoRouterAddress);
+    if (widoRouterAddress == "") {
+        widoRouterAddress = await deployWidoRouter(deployer, bank);
+        console.log(`WidoRouter deployed to: ${adaptAddress(widoRouterAddress)}`);
+    }
+
+    const widoTokenManagerResponse = await deployer.callContract({
+        contractAddress: widoRouterAddress,
+        entrypoint: "wido_token_manager"
+    });
+    const [wido_token_manager] = widoTokenManagerResponse.result;
     console.log(`WidoTokenManager deployed to: ${adaptAddress(wido_token_manager)}`);
 }
 
-main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+// main()
+//     .then(() => process.exit(0))
+//     .catch((error) => {
+//         console.error(error);
+//         process.exit(1);
+//     });

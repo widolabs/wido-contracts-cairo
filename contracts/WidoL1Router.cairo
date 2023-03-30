@@ -22,29 +22,27 @@ func L1_Contract_Address() -> (l1_contract_address: felt) {
 }
 
 func approve_wido_token_manager{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    wido_token_manager: felt, token_address_len: felt, token_address: felt*
+    wido_token_manager: felt, inputs_len: felt, inputs: OrderInput*
 ) {
-    if (token_address_len == 0) {
+    if (inputs_len == 0) {
         return ();
     }
 
-    let (infinite: Uint256) = uint256_not(Uint256(0, 0));
-    IERC20.approve(contract_address=[token_address], spender=wido_token_manager, amount=infinite);
+    IERC20.approve(
+        contract_address=[inputs].token_address, spender=wido_token_manager, amount=[inputs].amount
+    );
 
-    approve_wido_token_manager(wido_token_manager, token_address_len - 1, token_address + 1);
+    approve_wido_token_manager(wido_token_manager, inputs_len - 1, inputs + OrderInput.SIZE);
 
     return ();
 }
 
 @external
 func initialize{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, wido_router: felt, token_address_len: felt, token_address: felt*
+    owner: felt, wido_router: felt
 ) {
     Initializable.initialize();
     Ownable.initializer(owner);
-
-    let (wido_token_manager) = IWidoRouter.wido_token_manager(contract_address=wido_router);
-    approve_wido_token_manager(wido_token_manager, token_address_len, token_address);
 
     Wido_Router.write(wido_router);
 
@@ -66,6 +64,17 @@ func set_l1_contract_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 
 // TODO: Add a withdraw function as well.
 
+@external
+func rescue_funds{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_address: felt, recipient: felt, amount: Uint256
+) {
+    Ownable.assert_only_owner();
+
+    IERC20.transfer(contract_address=token_address, recipient=recipient, amount=amount);
+
+    return ();
+}
+
 @l1_handler
 func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     from_address: felt,
@@ -86,6 +95,10 @@ func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     let (wido_router) = Wido_Router.read();
     let (self_address) = get_contract_address();
+
+    let (wido_token_manager) = IWidoRouter.wido_token_manager(contract_address=wido_router);
+
+    approve_wido_token_manager(wido_token_manager, inputs_len, inputs);
 
     // TODO: Add try catch, if fails send bridged token to the recipient.
     // Try/Catch is not available in Cairo 0 but will be available in Cairo 1
