@@ -42,20 +42,21 @@ export async function deployWidoStarknetRouter(
     WidoL2PayloadAddress: string,
     WidoL2Recipient: string
 ) {
-    const WidoStarknetRouterFactory = await ethers.getContractFactory(
-        CONTRACTS[network]["WidoStarknetRouterFactory"],
-        {
-            libraries: {
-                WidoL2Payload: WidoL2PayloadAddress
-            }
+    const WidoStarknetRouterFactory = await ethers.getContractFactory("WidoStarknetRouter", {
+        libraries: {
+            WidoL2Payload: WidoL2PayloadAddress
         }
-    );
+    });
 
     const WidoStarknetRouter = await WidoStarknetRouterFactory.deploy(
         widoConfig.address,
         StarknetCoreAddress,
         WidoRouterAddress,
-        WidoL2Recipient
+        WidoL2Recipient,
+        {
+            maxFeePerGas: "27721006484",
+            maxPriorityFeePerGas: "100000000"
+        }
     );
 
     console.log(`WidoStarknetRouter address: ${WidoStarknetRouter.address}`);
@@ -67,11 +68,10 @@ const CONTRACTS: { [key: string]: { [key: string]: string } } = {
     mainnet: {
         "wido-config": "0x2fBaB6FDC1b9236e74375Ac4331F867967E6b309",
         "wido-l2-payload": "0x32C2757Fe876013D2D6cb3460071676F8D70A49E",
-        "wido-starknet-router": "0xb0FC7612bbe59ce5967Bb418e7207cD176CA7681",
+        "wido-starknet-router": "0x2f6427D6437d69A2A2AE5Cc7cd6496Fd4C170365",
         "starknet-core": "0xc662c410C0ECf747543f5bA90660f6ABeBD9C8c4",
         "wido-router": "0x7Fb69e8fb1525ceEc03783FFd8a317bafbDfD394",
-        "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1",
-        WidoStarknetRouterFactory: "contracts/WidoStarknetRouter.sol:WidoStarknetRouter"
+        "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1"
     },
     goerli: {
         "wido-config": "0x01E3af00D8149FdE08BF2C9baf8f5F6058C93bde",
@@ -79,8 +79,7 @@ const CONTRACTS: { [key: string]: { [key: string]: string } } = {
         "wido-starknet-router": "0x12B3b353099861d5bef14aB0157d7a404Bd0cD6a",
         "starknet-core": "0xde29d060D45901Fb19ED6C6e959EB22d8626708e",
         "wido-router": "0xBc34989E5aD7CDfF05b8e11d4d7EB56124a529C8",
-        "l1-router": "0x77b746eeb2a126c616da01c64290df5dfc79be6b73f8e7ff98a6dd888754368",
-        WidoStarknetRouterFactory: "contracts/WidoStarknetTestnetRouter.sol:WidoStarknetRouter"
+        "l1-router": "0x77b746eeb2a126c616da01c64290df5dfc79be6b73f8e7ff98a6dd888754368"
     }
 };
 

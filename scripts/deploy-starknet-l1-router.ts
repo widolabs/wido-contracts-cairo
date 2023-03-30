@@ -28,7 +28,7 @@ async function deployWidoL1Router(deployer: Account) {
 const CONTRACTS = {
     "mainnet-alpha": {
         "l1-router": "0x1b64371585074b2c333e8b9fea28198ed8b75efcec2f3e3f7650a63de2999c1",
-        "starknet-router": "0xb0FC7612bbe59ce5967Bb418e7207cD176CA7681"
+        "starknet-router": "0x2f6427D6437d69A2A2AE5Cc7cd6496Fd4C170365"
     },
     "goerli-alpha": {
         "l1-router": "0x77b746eeb2a126c616da01c64290df5dfc79be6b73f8e7ff98a6dd888754368",
