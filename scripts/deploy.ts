@@ -121,6 +121,18 @@ async function main() {
             "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
                 bridge: "0xF6080D9fbEEbcd44D89aFfBFd42F098cbFf92816",
                 bridgedToken: STARKNET_USDC
+            },
+            "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599": {
+                bridge: "0x283751A21eafBFcD52297820D27C1f1963D9b5b4",
+                bridgedToken: "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac"
+            },
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7": {
+                bridge: "0xbb3400F107804DFB482565FF1Ec8D8aE66747605",
+                bridgedToken: "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"
+            },
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F": {
+                bridge: "0x9F96fE0633eE838D0298E8b8980E6716bE81388d",
+                bridgedToken: "0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3"
             }
         });
         WidoConfigAddress = WidoConfig.address;

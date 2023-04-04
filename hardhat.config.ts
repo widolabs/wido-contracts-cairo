@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@shardlabs/starknet-hardhat-plugin";
 import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-chai-matchers";
 import * as dotenv from "dotenv";
@@ -68,6 +69,12 @@ const config: HardhatUserConfig = {
         goerli: { url: "https://rpc.ankr.com/eth_goerli", accounts: accounts("goerli") },
         mainnet: { url: "https://eth.llamarpc.com", accounts: accounts("mainnet") },
         hardhat: {}
+    },
+    etherscan: {
+        // Your API key for Etherscan
+        apiKey: {
+            mainnet: ""
+        }
     },
     paths: {
         cairoPaths: ["~/cairo_venv/lib/python3.9/site-packages/openzeppelin"]
