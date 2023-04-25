@@ -12,6 +12,7 @@ import "hardhat/console.sol";
 
 contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
+    using SafeTransferLib for address;
     
     IWidoConfig public widoConfig;
     IStarknetMessaging public starknetCore;
@@ -106,6 +107,7 @@ contract WidoStarknetRouter {
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         require(order.outputs.length == 1, "Only single token output expected");
         require(msg.value >= bridgeFee + destinationTxFee, "Insufficient fee");
+        require(feeBps <= 100, "Fee out of range");
 
         address bridgeTokenAddress = order.outputs[0].tokenAddress;
 
@@ -128,7 +130,7 @@ contract WidoStarknetRouter {
         
         // Run Execute Order in L1
         if (steps.length > 0) {
-            widoRouter.executeOrder{value: msg.value - bridgeFee - destinationTxFee}(order, steps, feeBps, partner);
+            widoRouter.executeOrder{value: msg.value - bridgeFee - destinationTxFee}(order, steps, 0, partner);
         }
 
         // This amount will be the amount that is to be bridged to starknet.
@@ -136,10 +138,19 @@ contract WidoStarknetRouter {
         // The minimum tokens to be bridged can be verified as part of the order, if there are steps. Otherwise,
         // It would be same as the input token.
         uint256 amount;
-        if (bridgeTokenAddress == address(0)) {
-            amount = address(this).balance - bridgeFee - destinationTxFee;
-        } else {
-            amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
+        {
+            uint256 fee;
+            address bank = IWidoConfig(widoConfig).getBank();
+
+            if (bridgeTokenAddress == address(0)) {
+                amount = address(this).balance - bridgeFee - destinationTxFee;
+                fee = (amount * feeBps) / 10000;
+                bank.safeTransferETH(fee);
+            } else {
+                amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
+                fee = (amount * feeBps) / 10000;
+                ERC20(bridgeTokenAddress).safeTransfer(bank, fee);
+            }
         }
 
         if (destinationPayload.length > 0) {
