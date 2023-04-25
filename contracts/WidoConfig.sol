@@ -65,7 +65,8 @@ contract WidoConfig is IWidoConfig, OwnableUpgradeable {
         }
     }
 
-    function setBank(address bank)  external override {
+    function setBank(address bank)  external override onlyOwner {
+        require(bank != address(0), "Bank address cannot be 0 address");
         _bank = bank;
 
         emit SetBank(bank);

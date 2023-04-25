@@ -25,6 +25,14 @@ async function deployWidoConfig(mapTokenBridgeAddress: {
     return WidoConfig;
 }
 
+async function updateWidoConfig(widoConfigAddress: string) {
+    const WidoConfigFactory = await ethers.getContractFactory("WidoConfig");
+
+    const proxy = await upgrades.upgradeProxy(widoConfigAddress, WidoConfigFactory);
+
+    return proxy;
+}
+
 async function deployWidoL2Payload() {
     const WidoL2PayloadFactory = await ethers.getContractFactory("WidoL2Payload");
     const WidoL2Payload = await WidoL2PayloadFactory.deploy();
@@ -88,6 +96,7 @@ async function main() {
     // Starknet Addresses from https://github.com/starknet-io/starknet-addresses
 
     let WidoConfigAddress = CONTRACTS[network]["wido-config"];
+    const shouldUpgradeWidoConfig = true;
     let WidoConfig: Contract;
 
     let WidoL2PayloadAddress = CONTRACTS[network]["wido-l2-payload"];
@@ -137,6 +146,9 @@ async function main() {
         });
         WidoConfigAddress = WidoConfig.address;
     } else {
+        if (shouldUpgradeWidoConfig) {
+            await updateWidoConfig(WidoConfigAddress);
+        }
         const WidoConfigFactory = await ethers.getContractFactory("WidoConfig");
         WidoConfig = WidoConfigFactory.attach(WidoConfigAddress);
     }

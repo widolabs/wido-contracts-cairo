@@ -14,8 +14,8 @@ contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
     using SafeTransferLib for address;
     
-    IWidoConfig public widoConfig;
-    IStarknetMessaging public starknetCore;
+    IWidoConfig public immutable widoConfig;
+    IStarknetMessaging public immutable starknetCore;
 
     uint256 constant DESTINATION_PAYLOAD_INPUTS_LEN_INDEX = 0;
     uint256 constant DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX = 1;
@@ -26,7 +26,7 @@ contract WidoStarknetRouter {
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
     uint256 constant EXECUTE_SELECTOR = 1017745666394979726211766185068760164586829337678283062942418931026954492996;
 
-    IWidoRouter public widoRouter;
+    IWidoRouter public immutable widoRouter;
     uint256 public l2WidoRecipient;
 
     /// @notice Event emitted when the order is fulfilled
