@@ -62,7 +62,7 @@ export async function deployWidoStarknetRouter(
         WidoRouterAddress,
         WidoL2Recipient,
         {
-            maxFeePerGas: "27721006484",
+            maxFeePerGas: "40721006484",
             maxPriorityFeePerGas: "100000000"
         }
     );
@@ -96,7 +96,7 @@ async function main() {
     // Starknet Addresses from https://github.com/starknet-io/starknet-addresses
 
     let WidoConfigAddress = CONTRACTS[network]["wido-config"];
-    const shouldUpgradeWidoConfig = true;
+    const shouldUpgradeWidoConfig = false;
     let WidoConfig: Contract;
 
     let WidoL2PayloadAddress = CONTRACTS[network]["wido-l2-payload"];
