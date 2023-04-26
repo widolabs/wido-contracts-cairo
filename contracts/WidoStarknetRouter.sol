@@ -12,9 +12,10 @@ import "hardhat/console.sol";
 
 contract WidoStarknetRouter {
     using SafeTransferLib for ERC20;
+    using SafeTransferLib for address;
     
-    IWidoConfig public widoConfig;
-    IStarknetMessaging public starknetCore;
+    IWidoConfig public immutable widoConfig;
+    IStarknetMessaging public immutable starknetCore;
 
     uint256 constant DESTINATION_PAYLOAD_INPUTS_LEN_INDEX = 0;
     uint256 constant DESTINATION_PAYLOAD_INPUT0_TOKEN_ADDRESS_INDEX = 1;
@@ -25,7 +26,7 @@ contract WidoStarknetRouter {
     // The selector of the "execute" l1_handler in WidoL1Router.cairo
     uint256 constant EXECUTE_SELECTOR = 1017745666394979726211766185068760164586829337678283062942418931026954492996;
 
-    IWidoRouter public widoRouter;
+    IWidoRouter public immutable widoRouter;
     uint256 public l2WidoRecipient;
 
     /// @notice Event emitted when the order is fulfilled
@@ -106,6 +107,7 @@ contract WidoStarknetRouter {
         require(order.user == address(this), "Order user should equal WidoStarknetRouer");
         require(order.outputs.length == 1, "Only single token output expected");
         require(msg.value >= bridgeFee + destinationTxFee, "Insufficient fee");
+        require(feeBps <= 100, "Fee out of range");
 
         address bridgeTokenAddress = order.outputs[0].tokenAddress;
 
@@ -128,7 +130,7 @@ contract WidoStarknetRouter {
         
         // Run Execute Order in L1
         if (steps.length > 0) {
-            widoRouter.executeOrder{value: msg.value - bridgeFee - destinationTxFee}(order, steps, feeBps, partner);
+            widoRouter.executeOrder{value: msg.value - bridgeFee - destinationTxFee}(order, steps, 0, partner);
         }
 
         // This amount will be the amount that is to be bridged to starknet.
@@ -136,10 +138,19 @@ contract WidoStarknetRouter {
         // The minimum tokens to be bridged can be verified as part of the order, if there are steps. Otherwise,
         // It would be same as the input token.
         uint256 amount;
-        if (bridgeTokenAddress == address(0)) {
-            amount = address(this).balance - bridgeFee - destinationTxFee;
-        } else {
-            amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
+        {
+            uint256 fee;
+            address bank = IWidoConfig(widoConfig).getBank();
+
+            if (bridgeTokenAddress == address(0)) {
+                amount = address(this).balance - bridgeFee - destinationTxFee;
+                fee = (amount * feeBps) / 10000;
+                bank.safeTransferETH(fee);
+            } else {
+                amount = ERC20(bridgeTokenAddress).balanceOf(address(this));
+                fee = (amount * feeBps) / 10000;
+                ERC20(bridgeTokenAddress).safeTransfer(bank, fee);
+            }
         }
 
         if (destinationPayload.length > 0) {
