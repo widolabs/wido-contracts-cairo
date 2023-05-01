@@ -151,6 +151,7 @@ contract WidoStarknetRouter {
                 fee = (amount * feeBps) / 10000;
                 ERC20(bridgeTokenAddress).safeTransfer(bank, fee);
             }
+            amount = amount - fee;
         }
 
         if (destinationPayload.length > 0) {
